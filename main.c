@@ -14,12 +14,22 @@
 #include <stdio.h>
 #endif
 
+WNDCLASSEX wcDemo = {0};
 HFONT hfDefault;
 DWORD err;
+PIXELFORMATDESCRIPTOR pfd = {
+	sizeof(PIXELFORMATDESCRIPTOR),
+	1,
+	PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
+	32,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	32,
+	0, 0, 0, 0, 0, 0, 0
+};
+int i;
+#define REQUESTED_SIZE 210
 
-struct {
-	RECT rcFull, rcWork, rcBorders;
-} metrics;
+#include "windowing.c"
 
 #define IDC_BTN_START 3
 #define IDC_BTN_FULLSCREEN 4
@@ -54,6 +64,8 @@ void update_workingarea(HWND hWnd)
 	GetMonitorInfo(MonitorFromWindow(hWnd, MONITOR_DEFAULTTOPRIMARY), &mi);
 	metrics.rcFull = mi.rcMonitor;
 	metrics.rcWork = mi.rcWork;
+	metrics.workingAreaHeight = metrics.rcWork.bottom - metrics.rcWork.top;
+	metrics.workingAreaWidth = metrics.rcWork.right - metrics.rcWork.left;
 }
 
 void update_windowmapping(HWND hWnd)
@@ -69,23 +81,32 @@ void update_windowmapping(HWND hWnd)
 	metrics.rcBorders.right = rcFrame.right - rcFrame.left - rcClient.right - metrics.rcBorders.left;
 	metrics.rcBorders.top = p.y - rcFrame.top;
 	metrics.rcBorders.bottom = rcFrame.bottom - rcFrame.top - rcClient.bottom - metrics.rcBorders.top;
+	metrics.reqToRealWindowSize.x = rcFrame.right - rcFrame.left - REQUESTED_SIZE;
+	metrics.reqToRealWindowSize.y = rcFrame.bottom - rcFrame.top - REQUESTED_SIZE;
 }
 
 #include "demo.c"
 
 LRESULT CALLBACK StartupWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
+	static int didStart = 0;
 	HWND control;
 
 	switch (msg) {
 	case WM_CREATE:
 		control = CreateWindowExA(0, "BUTTON", "Full screen (unavailable)", BS_CHECKBOX | WS_CHILD | WS_VISIBLE | WS_DISABLED, 30, 30, 150, 25, hWnd, (HMENU) IDC_BTN_FULLSCREEN, 0, 0);
 		SendMessage(control, WM_SETFONT, (WPARAM) hfDefault, MAKELPARAM(FALSE, 0));
-		control = CreateWindowExA(0, "BUTTON", "Start", WS_CHILD | WS_VISIBLE, 50, 80, 80, 25, hWnd, (HMENU) IDC_BTN_START, 0, 0);
+		control = CreateWindowExA(0, "BUTTON", "Start", WS_CHILD | WS_VISIBLE, 60, 90, 80, 25, hWnd, (HMENU) IDC_BTN_START, 0, 0);
 		SendMessage(control, WM_SETFONT, (WPARAM) hfDefault, MAKELPARAM(FALSE, 0));
 		return 0;
+	case WM_DESTROY:
+		if (!didStart) {
+			PostQuitMessage(0);
+			return 0;
+		}
 	case WM_COMMAND:
 		if (LOWORD(wParam) == IDC_BTN_START) {
+			didStart = 1;
 			update_workingarea(hWnd);
 			update_windowmapping(hWnd);
 			DestroyWindow(hWnd);
@@ -133,8 +154,8 @@ void WinMainCRTStartup(void)
 
 	hWnd = CreateWindowEx(
 		WS_EX_APPWINDOW, wc.lpszClassName, "windows",
-		(WS_OVERLAPPEDWINDOW | WS_VISIBLE) & ~(WS_MINIMIZEBOX | WS_MAXIMIZEBOX),
-		CW_USEDEFAULT, CW_USEDEFAULT, 210, 210, 0, 0, wc.hInstance, 0
+		(WS_OVERLAPPEDWINDOW | WS_VISIBLE) & ~(WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_THICKFRAME),
+		CW_USEDEFAULT, CW_USEDEFAULT, REQUESTED_SIZE, REQUESTED_SIZE, 0, 0, wc.hInstance, 0
 	);
 
 	while (GetMessage(&msg, 0, 0, 0)) {

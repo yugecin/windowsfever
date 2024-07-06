@@ -110,6 +110,18 @@
 			RelativePath=".\main.c"
 			>
 		</File>
+		<File
+			RelativePath=".\windowing.c"
+			>
+			<FileConfiguration
+				Name="Debug|Win32"
+				ExcludedFromBuild="true"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+				/>
+			</FileConfiguration>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>
