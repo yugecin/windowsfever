@@ -4,11 +4,14 @@ struct {
 	POINT reqToRealWindowSize;
 } metrics;
 
-struct {
-	POINT pos, size;
-} grid;
 #define GRID_CELLS_HORZ 8
 #define GRID_CELLS_VERT 4
+struct {
+	/*size defines the size of a cell*/
+	/*pos is the top-left position where the grid starts, it gives space for GRID_CELLS_VERTxGRID_CELLS_HORZ cells,
+	  but there is space for another cell on each side of the grid.*/
+	POINT pos, size;
+} grid;
 
 void grid_init()
 {

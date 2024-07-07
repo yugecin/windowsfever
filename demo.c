@@ -3,7 +3,7 @@ int forceRender; /*to force a gl render instead of waiting for fps delay*/
 
 #pragma pack(push,1)
 struct {
-	struct win broken[GRID_CELLS_HORZ * GRID_CELLS_VERT];
+	struct win cells[GRID_CELLS_HORZ * GRID_CELLS_VERT];
 	struct win main;
 } wins;
 #pragma pack(pop)
@@ -54,10 +54,10 @@ void demo(GLuint fShader)
 			//SetWindowPos(hWnd, 0, 10 + (t / 10) % 100, 10, 0, 0, SWP_NOOWNERZORDER | SWP_NOSIZE | SWP_NOZORDER);
 
 			for (i = 0; i < sizeof(wins)/sizeof(struct win); i++) {
-				wglMakeCurrent(wins.broken[i].hDC, hGLRC);
+				wglMakeCurrent(wins.cells[i].hDC, hGLRC);
 				glProgramUniform1iv(fShader, 0, 1, &ms);
 				glRecti(1,1,-1,-1);
-				SwapBuffers(wins.broken[i].hDC);
+				SwapBuffers(wins.cells[i].hDC);
 			}
 			renderTickCount = newTickCount;
 		}
@@ -66,7 +66,7 @@ done:
 	ExitProcess(0);
 }
 
-void startdemo()
+GLuint setupdemo()
 {
 	GLuint vShader, fShader, pipeline;
 	char glInfoLogBuf[2000];
@@ -102,16 +102,16 @@ void startdemo()
 	DemoWindowSizeDesiredToReal(&pos, &size);
 	win_make(&wins.main, pos, size, "my-first-shader.glsl");
 
-	for (i = 0; i < sizeof(wins.broken)/sizeof(struct win); i++) {
+	for (i = 0; i < sizeof(wins.cells)/sizeof(struct win); i++) {
 		pos.x = grid.pos.x + grid.size.x * (i % GRID_CELLS_HORZ);
 		pos.y = grid.pos.y + grid.size.y * (i / GRID_CELLS_HORZ);
 		size = grid.size;
 		DemoWindowSizeDesiredToReal(&pos, &size);
-		win_make(wins.broken + i, pos, size, "m");
+		win_make(wins.cells + i, pos, size, "m");
 	}
 
 	for (i = 0; i < sizeof(wins)/sizeof(struct win); i++) {
-		wglMakeCurrent(wins.broken[i].hDC, hGLRC);
+		wglMakeCurrent(wins.cells[i].hDC, hGLRC);
 		vShader = glCreateShaderProgramv(GL_VERTEX_SHADER, 1, &vsh);
 		fShader = glCreateShaderProgramv(GL_FRAGMENT_SHADER, 1, &fragSource);
 		glGenProgramPipelines(1, &pipeline);
@@ -128,5 +128,13 @@ void startdemo()
 		}
 	}
 
+	return fShader;
+}
+
+void startdemo()
+{
+	GLuint fShader;
+
+	fShader = setupdemo();
 	demo(fShader);
 }
