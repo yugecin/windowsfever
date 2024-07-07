@@ -28,6 +28,7 @@ PIXELFORMATDESCRIPTOR pfd = {
 };
 int i;
 #define REQUESTED_SIZE 210
+#define REQUESTED_POSITION 200
 
 #include "windowing.c"
 
@@ -74,6 +75,10 @@ void update_windowmapping(HWND hWnd)
 	POINT p;
 
 	DwmGetWindowAttribute(hWnd, DWMWA_EXTENDED_FRAME_BOUNDS, &rcFrame, sizeof(rcFrame));
+	metrics.reqToRealFrameSize.x = rcFrame.right - rcFrame.left - REQUESTED_SIZE;
+	metrics.reqToRealFrameSize.y = rcFrame.bottom - rcFrame.top - REQUESTED_SIZE;
+	metrics.reqToRealFramePos.x = rcFrame.left - REQUESTED_POSITION;
+	metrics.reqToRealFramePos.y = rcFrame.top - REQUESTED_POSITION;
 	GetClientRect(hWnd, &rcClient);
 	p.x = 0; p.y = 0;
 	ClientToScreen(hWnd, &p);
@@ -81,8 +86,6 @@ void update_windowmapping(HWND hWnd)
 	metrics.rcBorders.right = rcFrame.right - rcFrame.left - rcClient.right - metrics.rcBorders.left;
 	metrics.rcBorders.top = p.y - rcFrame.top;
 	metrics.rcBorders.bottom = rcFrame.bottom - rcFrame.top - rcClient.bottom - metrics.rcBorders.top;
-	metrics.reqToRealWindowSize.x = rcFrame.right - rcFrame.left - REQUESTED_SIZE;
-	metrics.reqToRealWindowSize.y = rcFrame.bottom - rcFrame.top - REQUESTED_SIZE;
 }
 
 #include "demo.c"
@@ -155,7 +158,7 @@ void WinMainCRTStartup(void)
 	hWnd = CreateWindowEx(
 		WS_EX_APPWINDOW, wc.lpszClassName, "windows",
 		(WS_OVERLAPPEDWINDOW | WS_VISIBLE) & ~(WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_THICKFRAME),
-		CW_USEDEFAULT, CW_USEDEFAULT, REQUESTED_SIZE, REQUESTED_SIZE, 0, 0, wc.hInstance, 0
+		REQUESTED_POSITION, REQUESTED_POSITION, REQUESTED_SIZE, REQUESTED_SIZE, 0, 0, wc.hInstance, 0
 	);
 
 	while (GetMessage(&msg, 0, 0, 0)) {

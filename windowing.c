@@ -1,7 +1,7 @@
 struct {
 	RECT rcFull, rcWork, rcBorders;
 	int workingAreaHeight, workingAreaWidth;
-	POINT reqToRealWindowSize;
+	POINT reqToRealFramePos, reqToRealFrameSize;
 } metrics;
 
 #define GRID_CELLS_HORZ 8
@@ -37,15 +37,18 @@ void grid_init()
 HGLRC hGLRC;
 
 struct win {
+	POINT framePos, clientPos, frameSize, clientSize;
 	HWND hWnd;
 	HDC hDC;
 };
 
 void DemoWindowSizeDesiredToReal(POINT *pos, POINT *size)
 {
-	size->x -= metrics.reqToRealWindowSize.x;
-	size->y -= metrics.reqToRealWindowSize.y;
+	size->x -= metrics.reqToRealFrameSize.x;
+	size->y -= metrics.reqToRealFrameSize.y;
 }
+
+int pixelFormat;
 
 void win_make(struct win *this, POINT pos, POINT size, char *title)
 {
@@ -54,8 +57,19 @@ void win_make(struct win *this, POINT pos, POINT size, char *title)
 		(WS_OVERLAPPEDWINDOW | WS_VISIBLE) & ~(WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_THICKFRAME),
 		pos.x, pos.y, size.x, size.y, 0, 0, wcDemo.hInstance, 0
 	);
+	this->framePos.x = pos.x + metrics.reqToRealFramePos.x;
+	this->framePos.y = pos.y + metrics.reqToRealFramePos.y;
+	this->clientPos.x = this->framePos.x + metrics.rcBorders.left;
+	this->clientPos.y = this->framePos.y + metrics.rcBorders.top;
+	this->frameSize.x = size.x + metrics.reqToRealFrameSize.x;
+	this->frameSize.y = size.y + metrics.reqToRealFrameSize.y;
+	this->clientSize.x = this->frameSize.x - metrics.rcBorders.left - metrics.rcBorders.right;
+	this->clientSize.y = this->frameSize.y - metrics.rcBorders.bottom - metrics.rcBorders.top;
 	this->hDC = GetWindowDC(this->hWnd);
-	SetPixelFormat(this->hDC, ChoosePixelFormat(this->hDC, &pfd), &pfd);
+	if (!pixelFormat) {
+		pixelFormat = ChoosePixelFormat(this->hDC, &pfd);
+	}
+	SetPixelFormat(this->hDC, pixelFormat, &pfd);
 	if (!hGLRC) {
 		hGLRC = wglCreateContext(this->hDC);
 		wglMakeCurrent(this->hDC, hGLRC);
