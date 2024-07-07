@@ -30,8 +30,6 @@ int i;
 #define REQUESTED_SIZE 210
 #define REQUESTED_POSITION 200
 
-#include "windowing.c"
-
 #define IDC_BTN_START 3
 #define IDC_BTN_FULLSCREEN 4
 
@@ -56,6 +54,8 @@ void error_exit_loop()
 done:
 	ExitProcess(1);
 }
+
+#include "windowing.c"
 
 void update_workingarea(HWND hWnd)
 {

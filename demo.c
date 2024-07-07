@@ -3,8 +3,9 @@ int forceRender; /*to force a gl render instead of waiting for fps delay*/
 
 #pragma pack(push,1)
 struct {
-	struct win cells[GRID_CELLS_HORZ * GRID_CELLS_VERT];
 	struct win main;
+	struct win cells[GRID_CELLS_HORZ * GRID_CELLS_VERT];
+	struct win border[GRID_CELLS_HORZ * 2 + GRID_CELLS_VERT * 2 + 4];
 } wins;
 #pragma pack(pop)
 
@@ -29,10 +30,11 @@ LRESULT CALLBACK DemoWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	}
 }
 
-void demo(GLuint fShader)
+void demo()
 {
 	int startTickCount, lastTickCount, newTickCount, renderTickCount, ms;
 	MSG msg;
+	static int b = 0;
 
 	renderTickCount = -1000;
 	startTickCount = lastTickCount = GetTickCount();
@@ -49,16 +51,37 @@ void demo(GLuint fShader)
 		ms = newTickCount - startTickCount;
 		lastTickCount = newTickCount;
 
+		if (ms > 10000) {
+			//if (!IsWindowVisible(wins.main.hWnd)) {
+			//	ShowWindow(wins.main.hWnd, SW_SHOWNA);
+			//}
+			if (b) {
+				b = 0;
+				SetWindowPos(wins.main.hWnd, wins.cells[0].hWnd, wins.main.framePos.x - metrics.reqToRealFramePos.x, wins.main.framePos.y - metrics.reqToRealFramePos.y, 0, 0, SWP_NOSIZE);
+			}
+		} else if (ms > 4000) {
+			//if (IsWindowVisible(wins.main.hWnd)) {
+			//	ShowWindow(wins.main.hWnd, SW_HIDE);
+			//}
+			if (!b) {
+				SetWindowPos(wins.main.hWnd, NULL, 10000, 0, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
+				b = 1;
+			}
+		}
+
 		if (newTickCount - renderTickCount > 10 || forceRender) {
 			forceRender = 0;
 			//SetWindowPos(hWnd, 0, 10 + (t / 10) % 100, 10, 0, 0, SWP_NOOWNERZORDER | SWP_NOSIZE | SWP_NOZORDER);
 
-			for (i = 0; i < sizeof(wins)/sizeof(struct win); i++) {
-				wglMakeCurrent(wins.cells[i].hDC, hGLRC);
-				glProgramUniform1iv(fShader, 0, 1, &ms);
-				glRecti(1,1,-1,-1);
-				SwapBuffers(wins.cells[i].hDC);
-			}
+			wglMakeCurrent(wins.main.hDC, hGLRC);
+			glProgramUniform1iv(frag, 0, 1, &ms);
+			glProgramUniform4f(frag, 1, 0.0f, 1.0f);
+			glRecti(1,1,-1,-1);
+			SwapBuffers(wins.main.hDC);
+			DemoBitBltClientArea(&wins.cells[0], &wins.main, 0, 0);
+			wglMakeCurrent(wins.cells[2].hDC, hGLRC);
+			glRecti(1,1,-1,-1);
+			SwapBuffers(wins.cells[2].hDC);
 			renderTickCount = newTickCount;
 		}
 	}
@@ -66,11 +89,8 @@ done:
 	ExitProcess(0);
 }
 
-GLuint setupdemo()
+void setupdemo()
 {
-	GLuint vShader, fShader, pipeline;
-	char glInfoLogBuf[2000];
-	int glInfoLogBufSize;
 	POINT pos, size;
 
 	grid_init();
@@ -100,41 +120,35 @@ GLuint setupdemo()
 	size.x = grid.size.x * GRID_CELLS_HORZ;
 	size.y = grid.size.y * GRID_CELLS_VERT;
 	DemoWindowSizeDesiredToReal(&pos, &size);
-	win_make(&wins.main, pos, size, "my-first-shader.glsl");
+	win_make(&wins.main, pos, size, "my-first-shader.glsl", 1);
 
-	for (i = 0; i < sizeof(wins.cells)/sizeof(struct win); i++) {
+	for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
 		pos.x = grid.pos.x + grid.size.x * (i % GRID_CELLS_HORZ);
 		pos.y = grid.pos.y + grid.size.y * (i / GRID_CELLS_HORZ);
 		size = grid.size;
 		DemoWindowSizeDesiredToReal(&pos, &size);
-		win_make(wins.cells + i, pos, size, "m");
+		win_make(wins.cells + i, pos, size, "m", 1);
 	}
 
-	for (i = 0; i < sizeof(wins)/sizeof(struct win); i++) {
-		wglMakeCurrent(wins.cells[i].hDC, hGLRC);
-		vShader = glCreateShaderProgramv(GL_VERTEX_SHADER, 1, &vsh);
-		fShader = glCreateShaderProgramv(GL_FRAGMENT_SHADER, 1, &fragSource);
-		glGenProgramPipelines(1, &pipeline);
-		glBindProgramPipeline(pipeline);
-		glUseProgramStages(pipeline, GL_VERTEX_SHADER_BIT, vShader);
-		glUseProgramStages(pipeline, GL_FRAGMENT_SHADER_BIT, fShader);
-
-		glInfoLogBufSize = 0;
-		glGetProgramInfoLog(fShader, sizeof(glInfoLogBuf), &glInfoLogBufSize, glInfoLogBuf);
-		if (glInfoLogBuf[0] && glInfoLogBufSize) {
-			showconsole();
-			printf("gl info log is not emtpy, assuming error:\n%s", glInfoLogBuf);
-			error_exit_loop();
+	for (i = 0; i < GRID_CELLS_HORZ * 2 + GRID_CELLS_VERT * 2 + 4; i++) {
+		size = grid.size;
+		if (i < GRID_CELLS_HORZ + 2) {
+			pos.x = grid.pos.x + grid.size.x * (i - 1);
+			pos.y = grid.pos.y - grid.size.y;
+		} else if (i >= GRID_CELLS_HORZ + 2 + GRID_CELLS_VERT * 2) {
+			pos.x = grid.pos.x + grid.size.x * (i - (GRID_CELLS_HORZ + 2 + GRID_CELLS_VERT * 2) - 1);
+			pos.y = grid.pos.y + grid.size.y * GRID_CELLS_VERT;
+		} else {
+			pos.x = grid.pos.x - grid.size.x + grid.size.x * ((i - GRID_CELLS_HORZ - 2) % 2) * (GRID_CELLS_HORZ + 1);
+			pos.y = grid.pos.y + grid.size.y * ((i - GRID_CELLS_HORZ - 2) / 2);
 		}
+		DemoWindowSizeDesiredToReal(&pos, &size);
+		win_make(wins.border + i, pos, size, "m", 0);
 	}
-
-	return fShader;
 }
 
 void startdemo()
 {
-	GLuint fShader;
-
-	fShader = setupdemo();
-	demo(fShader);
+	setupdemo();
+	demo();
 }
