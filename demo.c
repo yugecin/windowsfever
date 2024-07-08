@@ -89,13 +89,12 @@ done:
 	ExitProcess(0);
 }
 
-void setupdemo()
+void startdemo()
 {
 	POINT pos, size;
 
 	grid_init();
 
-	pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR);
 
 	wcDemo.cbSize = sizeof(WNDCLASSEX);
 	wcDemo.style = 0;
@@ -145,10 +144,6 @@ void setupdemo()
 		DemoWindowSizeDesiredToReal(&pos, &size);
 		win_make(wins.border + i, pos, size, "m", 0);
 	}
-}
 
-void startdemo()
-{
-	setupdemo();
 	demo();
 }

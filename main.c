@@ -17,15 +17,6 @@
 WNDCLASSEX wcDemo = {0};
 HFONT hfDefault;
 DWORD err;
-PIXELFORMATDESCRIPTOR pfd = {
-	sizeof(PIXELFORMATDESCRIPTOR),
-	1,
-	PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
-	32,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	32,
-	0, 0, 0, 0, 0, 0, 0
-};
 int i;
 #define REQUESTED_SIZE 210
 #define REQUESTED_POSITION 200
@@ -57,9 +48,11 @@ done:
 
 #include "windowing.c"
 
-void update_workingarea(HWND hWnd)
+void updatemetrics(HWND hWnd)
 {
+	RECT rcFrame, rcClient;
 	MONITORINFO mi;
+	POINT p;
 
 	mi.cbSize = sizeof(mi);
 	GetMonitorInfo(MonitorFromWindow(hWnd, MONITOR_DEFAULTTOPRIMARY), &mi);
@@ -67,12 +60,6 @@ void update_workingarea(HWND hWnd)
 	metrics.rcWork = mi.rcWork;
 	metrics.workingAreaHeight = metrics.rcWork.bottom - metrics.rcWork.top;
 	metrics.workingAreaWidth = metrics.rcWork.right - metrics.rcWork.left;
-}
-
-void update_windowmapping(HWND hWnd)
-{
-	RECT rcFrame, rcClient;
-	POINT p;
 
 	DwmGetWindowAttribute(hWnd, DWMWA_EXTENDED_FRAME_BOUNDS, &rcFrame, sizeof(rcFrame));
 	metrics.reqToRealFrameSize.x = rcFrame.right - rcFrame.left - REQUESTED_SIZE;
@@ -110,8 +97,7 @@ LRESULT CALLBACK StartupWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPara
 	case WM_COMMAND:
 		if (LOWORD(wParam) == IDC_BTN_START) {
 			didStart = 1;
-			update_workingarea(hWnd);
-			update_windowmapping(hWnd);
+			updatemetrics(hWnd);
 			DestroyWindow(hWnd);
 			startdemo();
 		}

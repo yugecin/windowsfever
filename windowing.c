@@ -53,7 +53,8 @@ void DemoBitBltClientArea(struct win *dst, struct win *src, int x, int y)
 		dst->clientSize.x + metrics.rcBorders.left + 1
 			/*idk why +1 is necessary, idk why left border is even necessary because
 			  cx is documented as "width" and not "end x coord". the behavior seems
-			  different from docs and also different from the cy param below.*/,
+			  different from docs and also different from the cy param below, which doesn't
+			  need a similar adjustment for top border?!*/,
 		dst->clientSize.y,
 		src->hDC,
 		metrics.rcBorders.left, metrics.rcBorders.top,
@@ -71,6 +72,15 @@ int pixelFormat;
 
 void win_make(struct win *this, POINT pos, POINT size, char *title, int needsGL)
 {
+	static PIXELFORMATDESCRIPTOR pfd = {
+		sizeof(PIXELFORMATDESCRIPTOR),
+		1,
+		PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
+		32,
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		32,
+		0, 0, 0, 0, 0, 0, 0
+	};
 	char glInfoLogBuf[2000];
 	int glInfoLogBufSize;
 	GLuint vert, pipeline;
