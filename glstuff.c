@@ -2,7 +2,7 @@ PFNGLCREATESHADERPROGRAMVPROC glCreateShaderProgramv;
 PFNGLGENPROGRAMPIPELINESPROC glGenProgramPipelines;
 PFNGLBINDPROGRAMPIPELINEPROC glBindProgramPipeline;
 PFNGLGETPROGRAMINFOLOGPROC glGetProgramInfoLog;
-PFNGLPROGRAMUNIFORM1IVPROC glProgramUniform1iv;
+PFNGLPROGRAMUNIFORM1FVPROC glProgramUniform1fv;
 PFNGLUSEPROGRAMSTAGESPROC glUseProgramStages;
 
 void glstuff_get_procs()
@@ -11,7 +11,7 @@ void glstuff_get_procs()
 	glGenProgramPipelines = (void*) wglGetProcAddress("glGenProgramPipelines");
 	glBindProgramPipeline = (void*) wglGetProcAddress("glBindProgramPipeline");
 	glGetProgramInfoLog = (void*) wglGetProcAddress("glGetProgramInfoLog");
-	glProgramUniform1iv = (void*) wglGetProcAddress("glProgramUniform1iv");
+	glProgramUniform1fv = (void*) wglGetProcAddress("glProgramUniform1fv");
 	glUseProgramStages = (void*) wglGetProcAddress("glUseProgramStages");
 }
 

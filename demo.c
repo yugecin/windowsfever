@@ -7,6 +7,11 @@ struct {
 	struct win cells[GRID_CELLS_HORZ * GRID_CELLS_VERT];
 	struct win border[GRID_CELLS_HORZ * 2 + GRID_CELLS_VERT * 2 + 4];
 } wins;
+
+struct {
+	float fTime;
+	float umin, umax, vmin, vmax;
+} par;
 #pragma pack(pop)
 
 LRESULT CALLBACK DemoWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -27,6 +32,38 @@ LRESULT CALLBACK DemoWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			return 0;
 		}
 	default: return DefWindowProc(hwnd, msg, wParam, lParam);
+	}
+}
+
+void render_shader_in_cells()
+{
+	POINT cellClientSize;
+	int j, x, y;
+	float w, h;
+	HDC hDC;
+
+	y = wins.main.clientSize.y;
+	h = (float) wins.main.clientSize.y;
+	w = (float) wins.main.clientSize.x;
+	cellClientSize = wins.cells[0].clientSize;
+	for (j = 0; j < GRID_CELLS_VERT; j++) {
+		x = 0;
+		par.vmax = y / h;
+		y -= cellClientSize.y;
+		par.vmin = y / h;
+		y -= metrics.rcBorders.top + metrics.rcBorders.bottom;
+		for (i = 0; i < GRID_CELLS_HORZ; i++) {
+			par.umin = x / w;
+			x += cellClientSize.x;
+			par.umax = x / w;
+			x += metrics.rcBorders.right + metrics.rcBorders.left;
+			hDC = wins.cells[j * GRID_CELLS_HORZ + i].hDC;
+			wglMakeCurrent(hDC, hGLRC);
+			glProgramUniform1fv(frag, 0, 5, (float*) &par);
+			glViewport(0, 0, cellClientSize.x, cellClientSize.y);
+			glRecti(1, 1, -1, -1);
+			SwapBuffers(hDC);
+		}
 	}
 }
 
@@ -71,18 +108,21 @@ void demo()
 
 		if (newTickCount - renderTickCount > 10 || forceRender) {
 			forceRender = 0;
+			renderTickCount = newTickCount;
 			//SetWindowPos(hWnd, 0, 10 + (t / 10) % 100, 10, 0, 0, SWP_NOOWNERZORDER | SWP_NOSIZE | SWP_NOZORDER);
 
 			wglMakeCurrent(wins.main.hDC, hGLRC);
-			glProgramUniform1iv(frag, 0, 1, &ms);
-			glProgramUniform4f(frag, 1, 0.0f, 1.0f);
-			glRecti(1,1,-1,-1);
+			par.fTime = ms / 1000.0f;
+			par.umin = par.vmin = 0.0f;
+			par.umax = par.vmax = 1.0f;
+			glProgramUniform1fv(frag, 0, 5, (float*) &par);
+			glViewport(0, 0, wins.main.clientSize.x, wins.main.clientSize.y);
+			glRecti(1, 1, -1, -1);
 			SwapBuffers(wins.main.hDC);
-			DemoBitBltClientArea(&wins.cells[0], &wins.main, 0, 0);
-			wglMakeCurrent(wins.cells[2].hDC, hGLRC);
-			glRecti(1,1,-1,-1);
-			SwapBuffers(wins.cells[2].hDC);
-			renderTickCount = newTickCount;
+
+			//DemoBitBltClientArea(&wins.cells[0], &wins.main, 0, 0);
+
+			render_shader_in_cells();
 		}
 	}
 done:
