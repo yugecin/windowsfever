@@ -70,7 +70,7 @@ void DemoWindowSizeDesiredToReal(POINT *pos, POINT *size)
 
 int pixelFormat;
 
-void win_make(struct win *this, POINT pos, POINT size, char *title, int needsGL)
+void win_make(struct win *this, POINT pos, POINT size, char *title, int needsGL, int visible)
 {
 	static PIXELFORMATDESCRIPTOR pfd = {
 		sizeof(PIXELFORMATDESCRIPTOR),
@@ -87,7 +87,7 @@ void win_make(struct win *this, POINT pos, POINT size, char *title, int needsGL)
 
 	this->hWnd = CreateWindowEx(
 		WS_EX_APPWINDOW, wcDemo.lpszClassName, title,
-		(WS_OVERLAPPEDWINDOW | WS_VISIBLE) & ~(WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_THICKFRAME),
+		(WS_OVERLAPPEDWINDOW | (~(visible - 1) & WS_VISIBLE)) & ~(WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_THICKFRAME),
 		pos.x, pos.y, size.x, size.y, 0, 0, wcDemo.hInstance, 0
 	);
 	this->framePos.x = pos.x + metrics.reqToRealFramePos.x;

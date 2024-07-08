@@ -119,14 +119,14 @@ void startdemo()
 	size.x = grid.size.x * GRID_CELLS_HORZ;
 	size.y = grid.size.y * GRID_CELLS_VERT;
 	DemoWindowSizeDesiredToReal(&pos, &size);
-	win_make(&wins.main, pos, size, "my-first-shader.glsl", 1);
+	win_make(&wins.main, pos, size, "my-first-shader.glsl", 1, 1);
 
 	for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
 		pos.x = grid.pos.x + grid.size.x * (i % GRID_CELLS_HORZ);
 		pos.y = grid.pos.y + grid.size.y * (i / GRID_CELLS_HORZ);
 		size = grid.size;
 		DemoWindowSizeDesiredToReal(&pos, &size);
-		win_make(wins.cells + i, pos, size, "m", 1);
+		win_make(wins.cells + i, pos, size, "m", 1, 1);
 	}
 
 	for (i = 0; i < GRID_CELLS_HORZ * 2 + GRID_CELLS_VERT * 2 + 4; i++) {
@@ -142,7 +142,7 @@ void startdemo()
 			pos.y = grid.pos.y + grid.size.y * ((i - GRID_CELLS_HORZ - 2) / 2);
 		}
 		DemoWindowSizeDesiredToReal(&pos, &size);
-		win_make(wins.border + i, pos, size, "m", 0);
+		win_make(wins.border + i, pos, size, "m", 0, 0);
 	}
 
 	demo();
