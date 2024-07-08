@@ -62,10 +62,26 @@ void DemoBitBltClientArea(struct win *dst, struct win *src, int x, int y)
 	);
 }
 
+void DemoRect(HDC hDC, int x, int y, int w, int h)
+{
+	x += metrics.rcBorders.left + 2; /*I don't know why +2, don't ask*/
+	y += metrics.rcBorders.top;
+	Rectangle(hDC, x, y, x + w, y + h);
+}
+
 void DemoWindowSizeDesiredToReal(POINT *pos, POINT *size)
 {
 	size->x -= metrics.reqToRealFrameSize.x;
 	size->y -= metrics.reqToRealFrameSize.y;
+}
+
+void DemoRestoreWindow(struct win *this, int swpFlags)
+{
+	POINT size;
+
+	size = this->frameSize;
+	DemoWindowSizeDesiredToReal(NULL, &size);
+	SetWindowPos(this->hWnd, NULL, this->framePos.x, this->framePos.y, size.x, size.y, SWP_NOZORDER | swpFlags);
 }
 
 int pixelFormat;

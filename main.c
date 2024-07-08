@@ -1,6 +1,6 @@
 #define _CRT_SECURE_NO_WARNINGS
-//#define dbg
-#define messages // so we don't freeze
+
+#define DEMONAME "windows"
 
 //#define WIN32_LEAN_AND_MEAN
 //#define WIN32_EXTRA_LEAN
@@ -142,7 +142,7 @@ void WinMainCRTStartup(void)
 	}
 
 	hWnd = CreateWindowEx(
-		WS_EX_APPWINDOW, wc.lpszClassName, "windows",
+		WS_EX_APPWINDOW, wc.lpszClassName, DEMONAME,
 		(WS_OVERLAPPEDWINDOW | WS_VISIBLE) & ~(WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_THICKFRAME),
 		REQUESTED_POSITION, REQUESTED_POSITION, REQUESTED_SIZE, REQUESTED_SIZE, 0, 0, wc.hInstance, 0
 	);

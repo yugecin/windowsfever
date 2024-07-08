@@ -1,24 +1,45 @@
 int seekValue; /*to modify current time by pressing left/right arrow keys to seek through the demo*/
 int forceRender; /*to force a gl render instead of waiting for fps delay*/
+#define LOADERMAX (sizeof(wins)*2/sizeof(struct win))
+int loaderCurrent; /*loader window progress bar*/
 
-#pragma pack(push,1)
 struct {
+	struct win loader;
 	struct win main;
 	struct win cells[GRID_CELLS_HORZ * GRID_CELLS_VERT];
 	struct win border[GRID_CELLS_HORZ * 2 + GRID_CELLS_VERT * 2 + 4];
 } wins;
 
+#pragma pack(push,1)
 struct {
 	float fTime;
 	float umin, umax, vmin, vmax;
 } par;
 #pragma pack(pop)
 
-LRESULT CALLBACK DemoWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+void render_loader()
+{
+	PAINTSTRUCT ps;
+
+	BeginPaint(wins.loader.hWnd, &ps);
+	SelectObject(wins.loader.hDC, GetStockObject(BLACK_BRUSH));
+	DemoRect(wins.loader.hDC, 0, 0, wins.loader.clientSize.x, wins.loader.clientSize.y);
+	SelectObject(wins.loader.hDC, GetStockObject(WHITE_BRUSH));
+	DemoRect(wins.loader.hDC, 5, 5, wins.loader.clientSize.x - 10, wins.loader.clientSize.y - 10);
+	SelectObject(wins.loader.hDC, GetStockObject(BLACK_BRUSH));
+	DemoRect(wins.loader.hDC, 10, 10, wins.loader.clientSize.x - 20, wins.loader.clientSize.y - 20);
+	SelectObject(wins.loader.hDC, GetStockObject(WHITE_BRUSH));
+	DemoRect(wins.loader.hDC, 15, 15, (int) ((wins.loader.clientSize.x - 30) * ((float) loaderCurrent / LOADERMAX)), wins.loader.clientSize.y - 30);
+	EndPaint(wins.loader.hWnd, &ps);
+}
+
+LRESULT CALLBACK DemoWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch (msg) {
 	case WM_DESTROY:
-		PostQuitMessage(0);
+		if (hWnd != wins.loader.hWnd) {
+			PostQuitMessage(0);
+		}
 		return 0;
 	case WM_KEYDOWN:
 		if (wParam == VK_RIGHT) {
@@ -31,8 +52,14 @@ LRESULT CALLBACK DemoWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			forceRender = 1;
 			return 0;
 		}
-	default: return DefWindowProc(hwnd, msg, wParam, lParam);
+		break;
+	case WM_PAINT:
+		if (hWnd == wins.loader.hWnd) {
+			render_loader();
+			return 0;
+		}
 	}
+	return DefWindowProc(hWnd, msg, wParam, lParam);
 }
 
 void render_shader_in_cells()
@@ -129,6 +156,22 @@ done:
 	ExitProcess(0);
 }
 
+void pumpmessages()
+{
+	MSG msg;
+
+	if (GetAsyncKeyState(VK_ESCAPE)) {
+		PostQuitMessage(0);
+	}
+	while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE)) {
+		if (msg.message == WM_QUIT) {
+			ExitProcess(0);
+		}
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+}
+
 void startdemo()
 {
 	POINT pos, size;
@@ -155,18 +198,32 @@ void startdemo()
 		error_exit_loop();
 	}
 
+	size.x = 500;
+	size.y = 150;
+	pos.x = metrics.rcWork.left + (metrics.workingAreaWidth - size.x) / 2;
+	pos.y = metrics.rcWork.top + (metrics.workingAreaHeight - size.y) / 2;
+	DemoWindowSizeDesiredToReal(&pos, &size);
+	win_make(&wins.loader, pos, size, DEMONAME, 0, 1);
+	loaderCurrent = 2;
+	render_loader();
+
 	pos = grid.pos;
 	size.x = grid.size.x * GRID_CELLS_HORZ;
 	size.y = grid.size.y * GRID_CELLS_VERT;
 	DemoWindowSizeDesiredToReal(&pos, &size);
-	win_make(&wins.main, pos, size, "my-first-shader.glsl", 1, 1);
+	win_make(&wins.main, pos, size, "my-first-shader.glsl", 1, 0);
+	SetWindowPos(wins.main.hWnd, wins.loader.hWnd, wins.loader.framePos.x + 50, wins.loader.framePos.y + 50, 50, 50, SWP_SHOWWINDOW | SWP_NOACTIVATE);
+	loaderCurrent++;
 
 	for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
 		pos.x = grid.pos.x + grid.size.x * (i % GRID_CELLS_HORZ);
 		pos.y = grid.pos.y + grid.size.y * (i / GRID_CELLS_HORZ);
 		size = grid.size;
 		DemoWindowSizeDesiredToReal(&pos, &size);
-		win_make(wins.cells + i, pos, size, "m", 1, 1);
+		win_make(wins.cells + i, pos, size, "m", 1, 0);
+		SetWindowPos(wins.cells[i].hWnd, wins.loader.hWnd, wins.loader.framePos.x + 50, wins.loader.framePos.y + 50, 50, 50, SWP_SHOWWINDOW | SWP_NOACTIVATE);
+		loaderCurrent++;
+		render_loader();
 	}
 
 	for (i = 0; i < GRID_CELLS_HORZ * 2 + GRID_CELLS_VERT * 2 + 4; i++) {
@@ -183,6 +240,48 @@ void startdemo()
 		}
 		DemoWindowSizeDesiredToReal(&pos, &size);
 		win_make(wins.border + i, pos, size, "m", 0, 0);
+		SetWindowPos(wins.border[i].hWnd, wins.loader.hWnd, wins.loader.framePos.x + 50, wins.loader.framePos.y + 50, 50, 50, SWP_SHOWWINDOW | SWP_NOACTIVATE);
+		loaderCurrent++;
+		render_loader();
+	}
+
+	{
+		par.fTime = 0.0f;
+		par.umin = par.vmin = 0.0f;
+		par.umax = par.vmax = 1.0f;
+		wglMakeCurrent(wins.main.hDC, hGLRC);
+		glProgramUniform1fv(frag, 0, 5, (float*) &par);
+		glRecti(1, 1, -1, -1);
+		SwapBuffers(wins.main.hDC);
+		loaderCurrent++;
+		pumpmessages();
+		for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
+			wglMakeCurrent(wins.cells[i].hDC, hGLRC);
+			glProgramUniform1fv(frag, 0, 5, (float*) &par);
+			glRecti(1, 1, -1, -1);
+			SwapBuffers(wins.cells[i].hDC);
+			loaderCurrent++;
+			render_loader();
+			pumpmessages();
+			Sleep(3);
+		}
+		for (i = 0; i < GRID_CELLS_HORZ * 2 + GRID_CELLS_VERT * 2 + 4; i++) {
+			loaderCurrent++;
+			render_loader();
+			pumpmessages();
+			Sleep(3);
+		}
+	}
+
+	{
+		DemoRestoreWindow(&wins.main, SWP_SHOWWINDOW);
+		for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
+			DemoRestoreWindow(wins.cells + i, SWP_SHOWWINDOW);
+		}
+		for (i = 0; i < GRID_CELLS_HORZ * 2 + GRID_CELLS_VERT * 2 + 4; i++) {
+			DemoRestoreWindow(wins.border + i, SWP_HIDEWINDOW);
+		}
+		DestroyWindow(wins.loader.hWnd);
 	}
 
 	demo();
