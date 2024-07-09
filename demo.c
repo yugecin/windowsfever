@@ -171,6 +171,9 @@ void startdemo()
 
 	grid_init();
 
+	par.fTime = 0.0f;
+	par.umin = par.vmin = 0.0f;
+	par.umax = par.vmax = 1.0f;
 
 	wcDemo.cbSize = sizeof(WNDCLASSEX);
 	wcDemo.style = 0;
@@ -242,9 +245,6 @@ void startdemo()
 	}
 
 	{
-		par.fTime = 0.0f;
-		par.umin = par.vmin = 0.0f;
-		par.umax = par.vmax = 1.0f;
 		wglMakeCurrent(wins.main.hDC, hGLRC);
 		glProgramUniform1fv(frag, 0, 5, (float*) &par);
 		glRecti(1, 1, -1, -1);
@@ -269,28 +269,19 @@ void startdemo()
 		}
 	}
 
-	DestroyWindow(wins.loader.hWnd);
-
-	{
-		for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
-			SetWindowPos(wins.cells[i].hWnd, NULL, 10000, 0, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
-		}
-		for (i = 0; i < GRID_CELLS_HORZ * 2 + GRID_CELLS_VERT * 2 + 4; i++) {
-			DemoRestoreWindow(wins.border + i, SWP_HIDEWINDOW);
-		}
+	for (i = 0; i < GRID_CELLS_HORZ * 2 + GRID_CELLS_VERT * 2 + 4; i++) {
+		DemoRestoreWindow(wins.border + i, SWP_HIDEWINDOW);
 	}
 
 	// render main window once so initial render lag doesn't affect demo timing
-	{
-		ShowWindow(wins.main.hWnd, SW_SHOW);
-		wglMakeCurrent(wins.main.hDC, hGLRC);
-		par.fTime = 0.0f;
-		par.umin = par.vmin = 0.0f;
-		par.umax = par.vmax = 1.0f;
-		glProgramUniform1fv(frag, 0, 5, (float*) &par);
-		glViewport(0, 0, wins.main.clientSize.x, wins.main.clientSize.y);
-		glRecti(1, 1, -1, -1);
-	}
+	ShowWindow(wins.main.hWnd, SW_SHOW);
+	wglMakeCurrent(wins.main.hDC, hGLRC);
+	glProgramUniform1fv(frag, 0, 5, (float*) &par);
+	glViewport(0, 0, wins.main.clientSize.x, wins.main.clientSize.y);
+	glRecti(1, 1, -1, -1);
+
+	// and only destroy loader once main window is actually on screen (otherwise we might reveal the cell windows)
+	DestroyWindow(wins.loader.hWnd);
 
 	demo();
 }
