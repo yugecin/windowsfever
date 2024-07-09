@@ -101,8 +101,9 @@ void pumpmessages()
 
 void demo()
 {
-	int startTickCount, lastTickCount, newTickCount, renderTickCount, ms;
 	static int cellsShown = 0;
+
+	int startTickCount, lastTickCount, newTickCount, renderTickCount, ms, dorender;
 
 	renderTickCount = -1000;
 	startTickCount = lastTickCount = GetTickCount();
@@ -113,18 +114,29 @@ void demo()
 		ms = newTickCount - startTickCount;
 		lastTickCount = newTickCount;
 
+		dorender = newTickCount - renderTickCount > 10 || forceRender;
+		forceRender = 0;
+
 		if (ms > 10000) {
 			if (!IsWindowVisible(wins.main.hWnd)) {
 				ShowWindow(wins.main.hWnd, SW_SHOWNA);
+				dorender = 1;
 			}
 		} else if (ms > 4000) {
+			dorender = 1;
+			if (!cellsShown) {
+				cellsShown = 1;
+				dorender = 1;
+				for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
+					DemoRestoreWindow(wins.cells + i, SWP_NOSIZE | SWP_NOACTIVATE);
+				}
+			}
 			if (IsWindowVisible(wins.main.hWnd)) {
 				ShowWindow(wins.main.hWnd, SW_HIDE);
 			}
 		}
 
-		if (newTickCount - renderTickCount > 10 || forceRender) {
-			forceRender = 0;
+		if (dorender) {
 			renderTickCount = newTickCount;
 			//SetWindowPos(hWnd, 0, 10 + (t / 10) % 100, 10, 0, 0, SWP_NOOWNERZORDER | SWP_NOSIZE | SWP_NOZORDER);
 
@@ -135,13 +147,7 @@ void demo()
 
 			//DemoBitBltClientArea(&wins.cells[0], &wins.main, 0, 0);
 
-			if (ms > 4000) {
-				if (!cellsShown) {
-					for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
-						DemoRestoreWindow(wins.cells + i, SWP_NOSIZE | SWP_NOACTIVATE);
-					}
-					cellsShown = 1;
-				}
+			if (cellsShown) {
 				render_shader_in_cells();
 			}
 		}
