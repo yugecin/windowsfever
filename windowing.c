@@ -45,6 +45,13 @@ struct win {
 	HDC hDC;
 };
 
+struct {
+	struct win loader;
+	struct win main;
+	struct win cells[GRID_CELLS_HORZ * GRID_CELLS_VERT];
+	struct win border[GRID_CELLS_HORZ * 2 + GRID_CELLS_VERT * 2 + 4];
+} wins;
+
 void DemoBitBltClientArea(struct win *dst, struct win *src, int x, int y)
 {
 	BitBlt(
@@ -75,6 +82,12 @@ void DemoRestoreWindow(struct win *this, int swpFlags)
 	size = this->frameSize;
 	DemoWindowSizeDesiredToReal(NULL, &size);
 	SetWindowPos(this->hWnd, NULL, this->framePos.x, this->framePos.y, size.x, size.y, SWP_NOZORDER | swpFlags);
+}
+
+void DemoCalcCellLoadingPos(POINT *pos)
+{
+	pos->x = wins.loader.framePos.x + grid.size.x / 2;
+	pos->y = wins.loader.framePos.y + grid.size.y / 2;
 }
 
 #define MW_VISIBLE 1

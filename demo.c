@@ -3,13 +3,6 @@ int forceRender; /*to force a gl render instead of waiting for fps delay*/
 #define LOADERMAX (sizeof(wins)*2/sizeof(struct win))
 int loaderCurrent; /*loader window progress bar*/
 
-struct {
-	struct win loader;
-	struct win main;
-	struct win cells[GRID_CELLS_HORZ * GRID_CELLS_VERT];
-	struct win border[GRID_CELLS_HORZ * 2 + GRID_CELLS_VERT * 2 + 4];
-} wins;
-
 #pragma pack(push,1)
 struct {
 	float fTime;
@@ -195,8 +188,8 @@ void startdemo()
 		error_exit_loop();
 	}
 
-	size.x = 500;
-	size.y = 150;
+	size.y = grid.size.y * 2;
+	size.x = size.y * 3;
 	pos.x = metrics.rcWork.left + (metrics.workingAreaWidth - size.x) / 2;
 	pos.y = metrics.rcWork.top + (metrics.workingAreaHeight - size.y) / 2;
 	DemoWindowSizeDesiredToReal(&pos, &size);
@@ -209,7 +202,6 @@ void startdemo()
 	size.y = grid.size.y * GRID_CELLS_VERT;
 	DemoWindowSizeDesiredToReal(&pos, &size);
 	DemoMakeWin(&wins.main, pos, size, "my-first-shader.glsl", MW_GL);
-	SetWindowPos(wins.main.hWnd, wins.loader.hWnd, wins.loader.framePos.x + 50, wins.loader.framePos.y + 50, 50, 50, SWP_SHOWWINDOW | SWP_NOACTIVATE);
 	loaderCurrent++;
 
 	for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
@@ -218,7 +210,8 @@ void startdemo()
 		size = grid.size;
 		DemoWindowSizeDesiredToReal(&pos, &size);
 		DemoMakeWin(wins.cells + i, pos, size, "m", MW_GL);
-		SetWindowPos(wins.cells[i].hWnd, wins.loader.hWnd, wins.loader.framePos.x + 50, wins.loader.framePos.y + 50, 50, 50, SWP_SHOWWINDOW | SWP_NOACTIVATE);
+		DemoCalcCellLoadingPos(&pos);
+		SetWindowPos(wins.cells[i].hWnd, wins.loader.hWnd, pos.x, pos.y, 0, 0, SWP_SHOWWINDOW | SWP_NOSIZE | SWP_NOACTIVATE);
 		loaderCurrent++;
 		RedrawWindow(wins.loader.hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
 		pumpmessages();
@@ -238,7 +231,8 @@ void startdemo()
 		}
 		DemoWindowSizeDesiredToReal(&pos, &size);
 		DemoMakeWin(wins.border + i, pos, size, "m", 0);
-		SetWindowPos(wins.border[i].hWnd, wins.loader.hWnd, wins.loader.framePos.x + 50, wins.loader.framePos.y + 50, 50, 50, SWP_SHOWWINDOW | SWP_NOACTIVATE);
+		DemoCalcCellLoadingPos(&pos);
+		SetWindowPos(wins.border[i].hWnd, wins.loader.hWnd, pos.x, pos.y, 0, 0, SWP_SHOWWINDOW | SWP_NOSIZE | SWP_NOACTIVATE);
 		loaderCurrent++;
 		RedrawWindow(wins.loader.hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
 		pumpmessages();
@@ -272,15 +266,27 @@ void startdemo()
 		}
 	}
 
+	DestroyWindow(wins.loader.hWnd);
+
 	{
-		DemoRestoreWindow(&wins.main, SWP_SHOWWINDOW);
 		for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
 			DemoRestoreWindow(wins.cells + i, SWP_SHOWWINDOW);
 		}
 		for (i = 0; i < GRID_CELLS_HORZ * 2 + GRID_CELLS_VERT * 2 + 4; i++) {
 			DemoRestoreWindow(wins.border + i, SWP_HIDEWINDOW);
 		}
-		DestroyWindow(wins.loader.hWnd);
+	}
+
+	// render main window once so initial render lag doesn't affect demo timing
+	{
+		ShowWindow(wins.main.hWnd, SW_SHOW);
+		wglMakeCurrent(wins.main.hDC, hGLRC);
+		par.fTime = 0.0f;
+		par.umin = par.vmin = 0.0f;
+		par.umax = par.vmax = 1.0f;
+		glProgramUniform1fv(frag, 0, 5, (float*) &par);
+		glViewport(0, 0, wins.main.clientSize.x, wins.main.clientSize.y);
+		glRecti(1, 1, -1, -1);
 	}
 
 	demo();
