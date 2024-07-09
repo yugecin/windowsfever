@@ -77,9 +77,9 @@ void DemoRestoreWindow(struct win *this, int swpFlags)
 	SetWindowPos(this->hWnd, NULL, this->framePos.x, this->framePos.y, size.x, size.y, SWP_NOZORDER | swpFlags);
 }
 
-int pixelFormat;
-
-void win_make(struct win *this, POINT pos, POINT size, char *title, int needsGL, int visible)
+#define MW_VISIBLE 1
+#define MW_GL 2
+void DemoMakeWin(struct win *this, POINT pos, POINT size, char *title, int flags)
 {
 	static PIXELFORMATDESCRIPTOR pfd = {
 		sizeof(PIXELFORMATDESCRIPTOR),
@@ -90,13 +90,15 @@ void win_make(struct win *this, POINT pos, POINT size, char *title, int needsGL,
 		32,
 		0, 0, 0, 0, 0, 0, 0
 	};
+	static int pixelFormat = 0;
+
 	char glInfoLogBuf[2000];
 	int glInfoLogBufSize;
 	GLuint vert, pipeline;
 
 	this->hWnd = CreateWindowEx(
 		WS_EX_APPWINDOW, wcDemo.lpszClassName, title,
-		(WS_OVERLAPPEDWINDOW | (~(visible - 1) & WS_VISIBLE)) & ~(WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_THICKFRAME),
+		(WS_OVERLAPPEDWINDOW | (~((flags & MW_VISIBLE) - 1) & WS_VISIBLE)) & ~(WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_THICKFRAME),
 		pos.x, pos.y, size.x, size.y, 0, 0, wcDemo.hInstance, 0
 	);
 	this->framePos.x = pos.x + metrics.reqToRealFramePos.x;
@@ -112,7 +114,7 @@ void win_make(struct win *this, POINT pos, POINT size, char *title, int needsGL,
 		pixelFormat = ChoosePixelFormat(this->hDC, &pfd);
 	}
 	SetPixelFormat(this->hDC, pixelFormat, &pfd);
-	if (needsGL && !hGLRC) {
+	if ((flags & MW_GL) && !hGLRC) {
 		hGLRC = wglCreateContext(this->hDC);
 		wglMakeCurrent(this->hDC, hGLRC);
 		glstuff_get_procs();

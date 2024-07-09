@@ -200,7 +200,7 @@ void startdemo()
 	pos.x = metrics.rcWork.left + (metrics.workingAreaWidth - size.x) / 2;
 	pos.y = metrics.rcWork.top + (metrics.workingAreaHeight - size.y) / 2;
 	DemoWindowSizeDesiredToReal(&pos, &size);
-	win_make(&wins.loader, pos, size, DEMONAME, 0, 1);
+	DemoMakeWin(&wins.loader, pos, size, DEMONAME, MW_VISIBLE);
 	loaderCurrent = 2;
 	render_loader();
 
@@ -208,7 +208,7 @@ void startdemo()
 	size.x = grid.size.x * GRID_CELLS_HORZ;
 	size.y = grid.size.y * GRID_CELLS_VERT;
 	DemoWindowSizeDesiredToReal(&pos, &size);
-	win_make(&wins.main, pos, size, "my-first-shader.glsl", 1, 0);
+	DemoMakeWin(&wins.main, pos, size, "my-first-shader.glsl", MW_GL);
 	SetWindowPos(wins.main.hWnd, wins.loader.hWnd, wins.loader.framePos.x + 50, wins.loader.framePos.y + 50, 50, 50, SWP_SHOWWINDOW | SWP_NOACTIVATE);
 	loaderCurrent++;
 
@@ -217,7 +217,7 @@ void startdemo()
 		pos.y = grid.pos.y + grid.size.y * (i / GRID_CELLS_HORZ);
 		size = grid.size;
 		DemoWindowSizeDesiredToReal(&pos, &size);
-		win_make(wins.cells + i, pos, size, "m", 1, 0);
+		DemoMakeWin(wins.cells + i, pos, size, "m", MW_GL);
 		SetWindowPos(wins.cells[i].hWnd, wins.loader.hWnd, wins.loader.framePos.x + 50, wins.loader.framePos.y + 50, 50, 50, SWP_SHOWWINDOW | SWP_NOACTIVATE);
 		loaderCurrent++;
 		RedrawWindow(wins.loader.hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
@@ -237,7 +237,7 @@ void startdemo()
 			pos.y = grid.pos.y + grid.size.y * ((i - GRID_CELLS_HORZ - 2) / 2);
 		}
 		DemoWindowSizeDesiredToReal(&pos, &size);
-		win_make(wins.border + i, pos, size, "m", 0, 0);
+		DemoMakeWin(wins.border + i, pos, size, "m", 0);
 		SetWindowPos(wins.border[i].hWnd, wins.loader.hWnd, wins.loader.framePos.x + 50, wins.loader.framePos.y + 50, 50, 50, SWP_SHOWWINDOW | SWP_NOACTIVATE);
 		loaderCurrent++;
 		RedrawWindow(wins.loader.hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
