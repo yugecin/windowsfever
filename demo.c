@@ -100,22 +100,31 @@ void render_shader_in_cells()
 	}
 }
 
+void pumpmessages()
+{
+	MSG msg;
+
+	if (GetAsyncKeyState(VK_ESCAPE)) {
+		PostQuitMessage(0);
+	}
+	while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE)) {
+		if (msg.message == WM_QUIT) {
+			ExitProcess(0);
+		}
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+}
+
 void demo()
 {
 	int startTickCount, lastTickCount, newTickCount, renderTickCount, ms;
-	MSG msg;
 	static int b = 0;
 
 	renderTickCount = -1000;
 	startTickCount = lastTickCount = GetTickCount();
-	while (!GetAsyncKeyState(VK_ESCAPE)) {
-		while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE)) {
-			if (msg.message == WM_QUIT) {
-				goto done;
-			}
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
+	for (;;) {
+		pumpmessages();
 
 		newTickCount = GetTickCount() + seekValue;
 		ms = newTickCount - startTickCount;
@@ -157,24 +166,6 @@ void demo()
 
 			render_shader_in_cells();
 		}
-	}
-done:
-	ExitProcess(0);
-}
-
-void pumpmessages()
-{
-	MSG msg;
-
-	if (GetAsyncKeyState(VK_ESCAPE)) {
-		PostQuitMessage(0);
-	}
-	while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE)) {
-		if (msg.message == WM_QUIT) {
-			ExitProcess(0);
-		}
-		TranslateMessage(&msg);
-		DispatchMessage(&msg);
 	}
 }
 
