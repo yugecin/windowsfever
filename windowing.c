@@ -90,6 +90,15 @@ void DemoCalcCellLoadingPos(POINT *pos)
 	pos->y = wins.loader.framePos.y + grid.size.y / 2;
 }
 
+void DemoRenderGl(struct win *this)
+{
+	wglMakeCurrent(this->hDC, hGLRC);
+	glProgramUniform1fv(frag, 0, 5, (float*) &uniformPar);
+	glViewport(0, 0, this->clientSize.x, this->clientSize.y);
+	glRecti(1, 1, -1, -1);
+	SwapBuffers(this->hDC);
+}
+
 #define MW_VISIBLE 1
 #define MW_GL 2
 #define MW_BACKDC 4

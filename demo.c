@@ -3,13 +3,6 @@ int forceRender; /*to force a gl render instead of waiting for fps delay*/
 #define LOADERMAX (sizeof(wins)*2/sizeof(struct win))
 int loaderCurrent; /*loader window progress bar*/
 
-#pragma pack(push,1)
-struct {
-	float fTime;
-	float umin, umax, vmin, vmax;
-} par;
-#pragma pack(pop)
-
 void render_loader()
 {
 	int w, h, dccookie;
@@ -69,7 +62,6 @@ void render_shader_in_cells()
 	POINT cellClientSize;
 	int j, x, y;
 	float w, h;
-	HDC hDC;
 
 	y = wins.main.clientSize.y;
 	h = (float) wins.main.clientSize.y;
@@ -77,21 +69,16 @@ void render_shader_in_cells()
 	cellClientSize = wins.cells[0].clientSize;
 	for (j = 0; j < GRID_CELLS_VERT; j++) {
 		x = 0;
-		par.vmax = y / h;
+		uniformPar.vmax = y / h;
 		y -= cellClientSize.y;
-		par.vmin = y / h;
+		uniformPar.vmin = y / h;
 		y -= metrics.rcBorders.top + metrics.rcBorders.bottom;
 		for (i = 0; i < GRID_CELLS_HORZ; i++) {
-			par.umin = x / w;
+			uniformPar.umin = x / w;
 			x += cellClientSize.x;
-			par.umax = x / w;
+			uniformPar.umax = x / w;
 			x += metrics.rcBorders.right + metrics.rcBorders.left;
-			hDC = wins.cells[j * GRID_CELLS_HORZ + i].hDC;
-			wglMakeCurrent(hDC, hGLRC);
-			glProgramUniform1fv(frag, 0, 5, (float*) &par);
-			glViewport(0, 0, cellClientSize.x, cellClientSize.y);
-			glRecti(1, 1, -1, -1);
-			SwapBuffers(hDC);
+			DemoRenderGl(wins.cells + j * GRID_CELLS_HORZ + i);
 		}
 	}
 }
@@ -141,14 +128,10 @@ void demo()
 			renderTickCount = newTickCount;
 			//SetWindowPos(hWnd, 0, 10 + (t / 10) % 100, 10, 0, 0, SWP_NOOWNERZORDER | SWP_NOSIZE | SWP_NOZORDER);
 
-			wglMakeCurrent(wins.main.hDC, hGLRC);
-			par.fTime = ms / 1000.0f;
-			par.umin = par.vmin = 0.0f;
-			par.umax = par.vmax = 1.0f;
-			glProgramUniform1fv(frag, 0, 5, (float*) &par);
-			glViewport(0, 0, wins.main.clientSize.x, wins.main.clientSize.y);
-			glRecti(1, 1, -1, -1);
-			SwapBuffers(wins.main.hDC);
+			uniformPar.fTime = ms / 1000.0f;
+			uniformPar.umin = uniformPar.vmin = 0.0f;
+			uniformPar.umax = uniformPar.vmax = 1.0f;
+			DemoRenderGl(&wins.main);
 
 			//DemoBitBltClientArea(&wins.cells[0], &wins.main, 0, 0);
 
@@ -171,9 +154,9 @@ void startdemo()
 
 	grid_init();
 
-	par.fTime = 0.0f;
-	par.umin = par.vmin = 0.0f;
-	par.umax = par.vmax = 1.0f;
+	uniformPar.fTime = 0.0f;
+	uniformPar.umin = uniformPar.vmin = 0.0f;
+	uniformPar.umax = uniformPar.vmax = 1.0f;
 
 	wcDemo.cbSize = sizeof(WNDCLASSEX);
 	wcDemo.style = 0;
@@ -245,15 +228,12 @@ void startdemo()
 	}
 
 	{
-		wglMakeCurrent(wins.main.hDC, hGLRC);
-		glProgramUniform1fv(frag, 0, 5, (float*) &par);
-		glRecti(1, 1, -1, -1);
-		SwapBuffers(wins.main.hDC);
+		DemoRenderGl(&wins.main);
 		loaderCurrent++;
 		pumpmessages();
 		for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
 			wglMakeCurrent(wins.cells[i].hDC, hGLRC);
-			glProgramUniform1fv(frag, 0, 5, (float*) &par);
+			glProgramUniform1fv(frag, 0, 5, (float*) &uniformPar);
 			glRecti(1, 1, -1, -1);
 			SwapBuffers(wins.cells[i].hDC);
 			loaderCurrent++;
@@ -275,10 +255,7 @@ void startdemo()
 
 	// render main window once so initial render lag doesn't affect demo timing
 	ShowWindow(wins.main.hWnd, SW_SHOW);
-	wglMakeCurrent(wins.main.hDC, hGLRC);
-	glProgramUniform1fv(frag, 0, 5, (float*) &par);
-	glViewport(0, 0, wins.main.clientSize.x, wins.main.clientSize.y);
-	glRecti(1, 1, -1, -1);
+	DemoRenderGl(&wins.main);
 
 	// and only destroy loader once main window is actually on screen (otherwise we might reveal the cell windows)
 	DestroyWindow(wins.loader.hWnd);

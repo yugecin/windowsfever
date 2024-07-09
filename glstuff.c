@@ -27,3 +27,10 @@ char *vertSource =
 	"gl_Position=vec4(p=i,0.,1.);"
 	"}"
 ;
+
+#pragma pack(push,1)
+struct {
+	float fTime;
+	float umin, umax, vmin, vmax;
+} uniformPar;
+#pragma pack(pop)
