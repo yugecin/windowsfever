@@ -20,16 +20,22 @@ struct {
 void render_loader()
 {
 	PAINTSTRUCT ps;
+	int w, h;
+	HDC hDC;
 
+	w = wins.loader.clientSize.x;
+	h = wins.loader.clientSize.y;
 	BeginPaint(wins.loader.hWnd, &ps);
-	SelectObject(wins.loader.hDC, GetStockObject(BLACK_BRUSH));
-	DemoRect(wins.loader.hDC, 0, 0, wins.loader.clientSize.x, wins.loader.clientSize.y);
-	SelectObject(wins.loader.hDC, GetStockObject(WHITE_BRUSH));
-	DemoRect(wins.loader.hDC, 5, 5, wins.loader.clientSize.x - 10, wins.loader.clientSize.y - 10);
-	SelectObject(wins.loader.hDC, GetStockObject(BLACK_BRUSH));
-	DemoRect(wins.loader.hDC, 10, 10, wins.loader.clientSize.x - 20, wins.loader.clientSize.y - 20);
-	SelectObject(wins.loader.hDC, GetStockObject(WHITE_BRUSH));
-	DemoRect(wins.loader.hDC, 15, 15, (int) ((wins.loader.clientSize.x - 30) * ((float) loaderCurrent / LOADERMAX)), wins.loader.clientSize.y - 30);
+	hDC = ps.hdc;
+	//hDC = wins.loader.hDC;
+	SelectObject(hDC, GetStockObject(BLACK_BRUSH));
+	Rectangle(hDC, 0, 0, w, h);
+	SelectObject(hDC, GetStockObject(WHITE_BRUSH));
+	Rectangle(hDC, 5, 5, w - 5, h - 5);
+	SelectObject(hDC, GetStockObject(BLACK_BRUSH));
+	Rectangle(hDC, 10, 10, w - 10, h - 10);
+	SelectObject(hDC, GetStockObject(WHITE_BRUSH));
+	Rectangle(hDC, 15, 15, (int) ((w - 15) * ((float) loaderCurrent / LOADERMAX)), h - 15);
 	EndPaint(wins.loader.hWnd, &ps);
 }
 
@@ -223,7 +229,8 @@ void startdemo()
 		win_make(wins.cells + i, pos, size, "m", 1, 0);
 		SetWindowPos(wins.cells[i].hWnd, wins.loader.hWnd, wins.loader.framePos.x + 50, wins.loader.framePos.y + 50, 50, 50, SWP_SHOWWINDOW | SWP_NOACTIVATE);
 		loaderCurrent++;
-		render_loader();
+		RedrawWindow(wins.loader.hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
+		pumpmessages();
 	}
 
 	for (i = 0; i < GRID_CELLS_HORZ * 2 + GRID_CELLS_VERT * 2 + 4; i++) {
@@ -242,7 +249,8 @@ void startdemo()
 		win_make(wins.border + i, pos, size, "m", 0, 0);
 		SetWindowPos(wins.border[i].hWnd, wins.loader.hWnd, wins.loader.framePos.x + 50, wins.loader.framePos.y + 50, 50, 50, SWP_SHOWWINDOW | SWP_NOACTIVATE);
 		loaderCurrent++;
-		render_loader();
+		RedrawWindow(wins.loader.hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
+		pumpmessages();
 	}
 
 	{
@@ -261,13 +269,13 @@ void startdemo()
 			glRecti(1, 1, -1, -1);
 			SwapBuffers(wins.cells[i].hDC);
 			loaderCurrent++;
-			render_loader();
+			RedrawWindow(wins.loader.hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
 			pumpmessages();
 			Sleep(3);
 		}
 		for (i = 0; i < GRID_CELLS_HORZ * 2 + GRID_CELLS_VERT * 2 + 4; i++) {
 			loaderCurrent++;
-			render_loader();
+			RedrawWindow(wins.loader.hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
 			pumpmessages();
 			Sleep(3);
 		}
