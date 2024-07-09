@@ -104,6 +104,7 @@ void demo()
 	static int cellsShown = 0;
 
 	int startTickCount, lastTickCount, newTickCount, renderTickCount, ms, dorender;
+	POINT pos;
 
 	renderTickCount = -1000;
 	startTickCount = lastTickCount = GetTickCount();
@@ -119,8 +120,13 @@ void demo()
 
 		if (ms > 10000) {
 			if (!IsWindowVisible(wins.main.hWnd)) {
-				ShowWindow(wins.main.hWnd, SW_SHOWNA);
+				ShowWindow(wins.main.hWnd, SW_SHOW);
 				dorender = 1;
+				for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
+					DemoCalcCellLoadingPos(&pos);
+					SetWindowPos(wins.cells[i].hWnd, NULL, pos.x, pos.y, 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
+				}
+				cellsShown = 0;
 			}
 		} else if (ms > 4000) {
 			dorender = 1;
