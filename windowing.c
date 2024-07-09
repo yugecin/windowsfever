@@ -41,8 +41,8 @@ GLuint frag;
 
 struct win {
 	POINT framePos, clientPos, frameSize, clientSize;
+	HDC hDC, hBackDC;
 	HWND hWnd;
-	HDC hDC;
 };
 
 struct {
@@ -92,6 +92,7 @@ void DemoCalcCellLoadingPos(POINT *pos)
 
 #define MW_VISIBLE 1
 #define MW_GL 2
+#define MW_BACKDC 4
 void DemoMakeWin(struct win *this, POINT pos, POINT size, char *title, int flags)
 {
 	static PIXELFORMATDESCRIPTOR pfd = {
@@ -127,6 +128,10 @@ void DemoMakeWin(struct win *this, POINT pos, POINT size, char *title, int flags
 		pixelFormat = ChoosePixelFormat(this->hDC, &pfd);
 	}
 	SetPixelFormat(this->hDC, pixelFormat, &pfd);
+	if (flags & MW_BACKDC) {
+		this->hBackDC = CreateCompatibleDC(this->hDC);
+		SelectObject(this->hBackDC, CreateCompatibleBitmap(this->hDC, this->clientSize.x, this->clientSize.y));
+	}
 	if ((flags & MW_GL) && !hGLRC) {
 		hGLRC = wglCreateContext(this->hDC);
 		wglMakeCurrent(this->hDC, hGLRC);

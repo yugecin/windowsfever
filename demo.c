@@ -12,15 +12,14 @@ struct {
 
 void render_loader()
 {
+	int w, h, dccookie;
 	PAINTSTRUCT ps;
-	int w, h;
 	HDC hDC;
 
 	w = wins.loader.clientSize.x;
 	h = wins.loader.clientSize.y;
-	BeginPaint(wins.loader.hWnd, &ps);
-	hDC = ps.hdc;
-	//hDC = wins.loader.hDC;
+	hDC = wins.loader.hBackDC;
+	dccookie = SaveDC(hDC);
 	SelectObject(hDC, GetStockObject(BLACK_BRUSH));
 	Rectangle(hDC, 0, 0, w, h);
 	SelectObject(hDC, GetStockObject(WHITE_BRUSH));
@@ -29,6 +28,10 @@ void render_loader()
 	Rectangle(hDC, 10, 10, w - 10, h - 10);
 	SelectObject(hDC, GetStockObject(WHITE_BRUSH));
 	Rectangle(hDC, 15, 15, (int) ((w - 15) * ((float) loaderCurrent / LOADERMAX)), h - 15);
+	RestoreDC(hDC, dccookie);
+
+	BeginPaint(wins.loader.hWnd, &ps);
+	BitBlt(ps.hdc, 0, 0, w, h, wins.loader.hBackDC, 0, 0, SRCCOPY);
 	EndPaint(wins.loader.hWnd, &ps);
 }
 
@@ -193,7 +196,7 @@ void startdemo()
 	pos.x = metrics.rcWork.left + (metrics.workingAreaWidth - size.x) / 2;
 	pos.y = metrics.rcWork.top + (metrics.workingAreaHeight - size.y) / 2;
 	DemoWindowSizeDesiredToReal(&pos, &size);
-	DemoMakeWin(&wins.loader, pos, size, DEMONAME, MW_VISIBLE);
+	DemoMakeWin(&wins.loader, pos, size, DEMONAME, MW_VISIBLE | MW_BACKDC);
 	loaderCurrent = 2;
 	render_loader();
 
