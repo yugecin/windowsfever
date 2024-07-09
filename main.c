@@ -75,6 +75,7 @@ void updatemetrics(HWND hWnd)
 	metrics.rcBorders.bottom = rcFrame.bottom - rcFrame.top - rcClient.bottom - metrics.rcBorders.top;
 }
 
+#include "explosion.c"
 #include "demo.c"
 
 LRESULT CALLBACK StartupWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)

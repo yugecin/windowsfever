@@ -105,6 +105,7 @@ void demo()
 
 	int startTickCount, lastTickCount, newTickCount, renderTickCount, ms, dorender;
 	POINT pos;
+	float t;
 
 	renderTickCount = -1000;
 	startTickCount = lastTickCount = GetTickCount();
@@ -137,6 +138,14 @@ void demo()
 				}
 				dorender = 1;
 				ShowWindow(wins.main.hWnd, SW_HIDE);
+			}
+			t = (ms - 4000) / 6000.0f * 1.15f;
+			if (t > 1.0f) {
+				t = 1.0f;
+			}
+			t = -1.0f * t * (t - 2.0f);
+			for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
+				explosion_do(i, t);
 			}
 		}
 
@@ -258,6 +267,8 @@ void startdemo()
 			Sleep(3);
 		}
 	}
+
+	explosion_init();
 
 	for (i = 0; i < GRID_CELLS_HORZ * 2 + GRID_CELLS_VERT * 2 + 4; i++) {
 		DemoRestoreWindow(wins.border + i, SWP_HIDEWINDOW);

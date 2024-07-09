@@ -6,6 +6,7 @@ struct {
 
 #define GRID_CELLS_HORZ 8
 #define GRID_CELLS_VERT 4
+#define GRID_CELLS (GRID_CELLS_HORZ * GRID_CELLS_VERT)
 struct {
 	/*size defines the size of a cell*/
 	/*pos is the top-left position where the grid starts, it gives space for GRID_CELLS_VERTxGRID_CELLS_HORZ cells,
@@ -84,8 +85,26 @@ void DemoRestoreWindow(struct win *this, int swpFlags)
 	SetWindowPos(this->hWnd, NULL, this->framePos.x, this->framePos.y, size.x, size.y, SWP_NOZORDER | swpFlags);
 }
 
+void DemoSetWindowPos(struct win *this, POINT pos, POINT size, int swpFlags)
+{
+	if (!(swpFlags & SWP_NOSIZE)) {
+		this->frameSize.x = size.x + metrics.reqToRealFrameSize.x;
+		this->frameSize.y = size.y + metrics.reqToRealFrameSize.y;
+		this->clientSize.x = this->frameSize.x - metrics.rcBorders.left - metrics.rcBorders.right;
+		this->clientSize.y = this->frameSize.y - metrics.rcBorders.bottom - metrics.rcBorders.top;
+	}
+	if (!(swpFlags & SWP_NOMOVE)) {
+		this->framePos.x = pos.x + metrics.reqToRealFramePos.x;
+		this->framePos.y = pos.y + metrics.reqToRealFramePos.y;
+		this->clientPos.x = this->framePos.x + metrics.rcBorders.left;
+		this->clientPos.y = this->framePos.y + metrics.rcBorders.top;
+	}
+	SetWindowPos(this->hWnd, NULL, pos.x, pos.y, size.x, size.y, SWP_NOZORDER | swpFlags);
+}
+
 void DemoCalcCellLoadingPos(POINT *pos)
 {
+	// TODO: actually center them
 	pos->x = wins.loader.framePos.x + grid.size.x / 2;
 	pos->y = wins.loader.framePos.y + grid.size.y / 2;
 }
