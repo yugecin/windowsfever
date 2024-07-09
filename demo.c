@@ -112,7 +112,7 @@ void pumpmessages()
 void demo()
 {
 	int startTickCount, lastTickCount, newTickCount, renderTickCount, ms;
-	static int b = 0;
+	static int cellsShown = 0;
 
 	renderTickCount = -1000;
 	startTickCount = lastTickCount = GetTickCount();
@@ -124,20 +124,12 @@ void demo()
 		lastTickCount = newTickCount;
 
 		if (ms > 10000) {
-			//if (!IsWindowVisible(wins.main.hWnd)) {
-			//	ShowWindow(wins.main.hWnd, SW_SHOWNA);
-			//}
-			if (b) {
-				b = 0;
-				SetWindowPos(wins.main.hWnd, wins.cells[0].hWnd, wins.main.framePos.x - metrics.reqToRealFramePos.x, wins.main.framePos.y - metrics.reqToRealFramePos.y, 0, 0, SWP_NOSIZE);
+			if (!IsWindowVisible(wins.main.hWnd)) {
+				ShowWindow(wins.main.hWnd, SW_SHOWNA);
 			}
 		} else if (ms > 4000) {
-			//if (IsWindowVisible(wins.main.hWnd)) {
-			//	ShowWindow(wins.main.hWnd, SW_HIDE);
-			//}
-			if (!b) {
-				SetWindowPos(wins.main.hWnd, NULL, 10000, 0, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
-				b = 1;
+			if (IsWindowVisible(wins.main.hWnd)) {
+				ShowWindow(wins.main.hWnd, SW_HIDE);
 			}
 		}
 
@@ -157,7 +149,15 @@ void demo()
 
 			//DemoBitBltClientArea(&wins.cells[0], &wins.main, 0, 0);
 
-			render_shader_in_cells();
+			if (ms > 4000) {
+				if (!cellsShown) {
+					for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
+						DemoRestoreWindow(wins.cells + i, SWP_NOSIZE | SWP_NOACTIVATE);
+					}
+					cellsShown = 1;
+				}
+				render_shader_in_cells();
+			}
 		}
 	}
 }
@@ -270,7 +270,7 @@ void startdemo()
 
 	{
 		for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
-			DemoRestoreWindow(wins.cells + i, SWP_SHOWWINDOW);
+			SetWindowPos(wins.cells[i].hWnd, NULL, 10000, 0, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
 		}
 		for (i = 0; i < GRID_CELLS_HORZ * 2 + GRID_CELLS_VERT * 2 + 4; i++) {
 			DemoRestoreWindow(wins.border + i, SWP_HIDEWINDOW);
