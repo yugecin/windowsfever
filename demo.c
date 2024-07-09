@@ -124,14 +124,12 @@ void demo()
 			}
 		} else if (ms > 4000) {
 			dorender = 1;
-			if (!cellsShown) {
+			if (IsWindowVisible(wins.main.hWnd)) {
 				cellsShown = 1;
-				dorender = 1;
 				for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
 					DemoRestoreWindow(wins.cells + i, SWP_NOSIZE | SWP_NOACTIVATE);
 				}
-			}
-			if (IsWindowVisible(wins.main.hWnd)) {
+				dorender = 1;
 				ShowWindow(wins.main.hWnd, SW_HIDE);
 			}
 		}
