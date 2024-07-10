@@ -23,22 +23,6 @@ int i;
 #define IDC_BTN_START 3
 #define IDC_BTN_FULLSCREEN 4
 
-void error_exit_loop()
-{
-	MSG msg;
-
-	while (!GetAsyncKeyState(VK_ESCAPE)) {
-		while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE)) {
-			if (msg.message == WM_QUIT) {
-				goto done;
-			}
-		}
-		Sleep(2);
-	}
-done:
-	ExitProcess(1);
-}
-
 #include "windowing.c"
 
 void updatemetrics(HWND hWnd)
