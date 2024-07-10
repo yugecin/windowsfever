@@ -273,13 +273,17 @@ void startdemo()
 			loaderCurrent++;
 			RedrawWindow(wins.loader.hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
 			pumpmessages();
+#ifdef RELEASE
 			Sleep(3);
+#endif
 		}
 		for (i = 0; i < GRID_CELLS_HORZ * 2 + GRID_CELLS_VERT * 2 + 4; i++) {
 			loaderCurrent++;
 			RedrawWindow(wins.loader.hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
 			pumpmessages();
+#ifdef RELEASE
 			Sleep(3);
+#endif
 		}
 	}
 

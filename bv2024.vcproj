@@ -53,6 +53,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories="&quot;C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Include&quot;"
+				PreprocessorDefinitions="RELEASE"
 				RuntimeLibrary="2"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
