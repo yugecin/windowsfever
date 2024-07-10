@@ -12,7 +12,6 @@ POINT explSize;
 void explosion_init()
 {
 	struct explosion *et;
-	int j;
 
 	srand(80284);
 	for (i = 0; i < GRID_CELLS; i++) {
@@ -20,20 +19,22 @@ void explosion_init()
 	}
 	for (i = 0; i < GRID_CELLS; i++) {
 		et = explosiontracker + i;
-		et->from.cellId = i;
-		et->to.cellId = randn(GRID_CELLS);
-		et->desktopX = randn(4) - 2;
-		if (et->desktopX >= 0) et->desktopX++;
-		et->desktopY = randn(4) - 2;
+		et->from.cellId = et->to.cellId = i;
+		et->desktopX = randn(6) - 3; /*-3 to 2*/
+		et->desktopY = randn(6) - 3;
+		if (et->desktopX < 0 && et->desktopX > -2) et->desktopX = -2;
+		if (et->desktopX >= 0 && et->desktopX < 2) et->desktopX = 2;
 		if (et->desktopY >= 0) et->desktopY++;
-		for (j = 0; j < i; j++) {
-			// what a horrible idea
-			if (explosiontracker[j].to.cellId == et->to.cellId) {
-				j = -1;
-				et->to.cellId = (et->to.cellId + 1) % GRID_CELLS;
-			}
-		}
 	}
+
+#if GRID_CELLS_VERT < 3 || GRID_CELLS_HORZ < 5
+#error "well this won't work"
+#endif
+#define CELLID(X,Y) (GRID_CELLS_HORZ * Y + X)
+	explosiontracker[CELLID(2,1)].to.cellId = CELLID(4,2);
+	explosiontracker[CELLID(4,2)].to.cellId = CELLID(0,0);
+	explosiontracker[CELLID(0,0)].to.cellId = CELLID(2,1);
+
 	explBounds.top = metrics.rcWork.top;
 	explBounds.right = metrics.rcWork.right - grid.size.x;
 	explBounds.bottom = metrics.rcWork.bottom - grid.size.y;
