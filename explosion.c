@@ -22,7 +22,7 @@ void explosion_init()
 		et->desktopX = rand() / (RAND_MAX / 7 + 1) - 3;
 		if (!et->desktopX) et->desktopX++;
 		et->desktopY = rand() / (RAND_MAX / 7 + 1) - 3;
-		if (!et->desktopX) et->desktopX++;
+		if (!et->desktopY) et->desktopY++;
 		for (j = 0; j < i; j++) {
 			// what a horrible idea
 			if (explosiontracker[j].to.cellId == et->to.cellId) {
