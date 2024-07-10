@@ -21,11 +21,11 @@ void explosion_init()
 	for (i = 0; i < GRID_CELLS; i++) {
 		et = explosiontracker + i;
 		et->from.cellId = i;
-		et->to.cellId = rand() / (RAND_MAX / GRID_CELLS + 1);
-		et->desktopX = rand() / (RAND_MAX / 7 + 1) - 3;
-		if (!et->desktopX) et->desktopX++;
-		et->desktopY = rand() / (RAND_MAX / 7 + 1) - 3;
-		if (!et->desktopY) et->desktopY++;
+		et->to.cellId = randn(GRID_CELLS);
+		et->desktopX = randn(4) - 2;
+		if (et->desktopX >= 0) et->desktopX++;
+		et->desktopY = randn(4) - 2;
+		if (et->desktopY >= 0) et->desktopY++;
 		for (j = 0; j < i; j++) {
 			// what a horrible idea
 			if (explosiontracker[j].to.cellId == et->to.cellId) {
@@ -46,10 +46,10 @@ void explosion_init()
 		et->from.y = grid.pos.y + grid.size.y * (et->from.cellId / GRID_CELLS_HORZ);
 		et->to.x = grid.pos.x + grid.size.x * (et->to.cellId % GRID_CELLS_HORZ);
 		et->to.y = grid.pos.y + grid.size.y * (et->to.cellId / GRID_CELLS_HORZ);
+		if (et->desktopX % 2) et->to.x = explBounds.right - (et->to.x - explBounds.left);
+		if (et->desktopY % 2) et->to.y = explBounds.bottom - (et->to.y - explBounds.top);
 		et->to.x += explSize.x * et->desktopX;
-		if (et->desktopX % 2) et->to.x -= et->to.x;
 		et->to.y += explSize.y * et->desktopY;
-		if (et->desktopY % 2) et->to.y -= et->to.y;
 	}
 }
 
@@ -59,23 +59,20 @@ void explosion_do(int index, float progress)
 	struct win *win = wins.cells + i;
 	POINT pos, size, isUneven;
 
-	size.x = size.y = 0;
 	pos.x = et->from.x + (int) ((et->to.x - et->from.x) * progress);
 	pos.y = et->from.y + (int) ((et->to.y - et->from.y) * progress);
-	// make origin 0,0
-	pos.x -= explBounds.left;
-	pos.y -= explBounds.top;
 	// check if desktop is uneven because then we need to mirror
-	isUneven.x = pos.x / explSize.x;
-	isUneven.y = pos.y / explSize.y;
+	isUneven.x = 0;
+	isUneven.y = 0;
 	// move back to working area
-	pos.x %= explSize.x;
-	pos.y %= explSize.y;
+	while (pos.x > explBounds.right) { pos.x -= explSize.x; isUneven.x ^= 1; }
+	while (pos.x < explBounds.left) { pos.x += explSize.x; isUneven.x ^= 1; }
+	while (pos.y > explBounds.bottom) { pos.y -= explSize.y; isUneven.y ^= 1; }
+	while (pos.y < explBounds.top) { pos.y += explSize.y; isUneven.y ^= 1; }
 	// mirror if uneven
-	if (isUneven.x) pos.x = explSize.x - pos.x;
-	if (isUneven.y) pos.y = explSize.y - pos.y;
-	// move back to desired origin
-	pos.x += explBounds.left;
-	pos.y += explBounds.top;
+	if (isUneven.x) pos.x = explBounds.right - (pos.x - explBounds.left);
+	if (isUneven.y) pos.y = explBounds.bottom - (pos.y - explBounds.top);
+
+	size.x = size.y = 0;
 	DemoSetWindowPos(win, pos, size, SWP_NOSIZE | SWP_NOACTIVATE);
 }
