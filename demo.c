@@ -271,6 +271,7 @@ void startdemo()
 	explosion_init();
 
 	for (i = 0; i < GRID_CELLS_HORZ * 2 + GRID_CELLS_VERT * 2 + 4; i++) {
+		// TODO: even though they're already hidden, this will show a 1ms hiding animation on win11
 		DemoRestoreWindow(wins.border + i, SWP_HIDEWINDOW);
 	}
 
