@@ -37,15 +37,17 @@ LRESULT CALLBACK DemoWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		}
 		return 0;
 	case WM_KEYDOWN:
-		if (wParam == VK_RIGHT) {
-			seekValue += 1000;
-			forceRender = 1;
-			return 0;
-		}
-		if (wParam == VK_LEFT) {
-			seekValue -= 1000;
-			forceRender = 1;
-			return 0;
+		if (hWnd != wins.loader.hWnd) {
+			if (wParam == VK_RIGHT) {
+				seekValue += 1000;
+				forceRender = 1;
+				return 0;
+			}
+			if (wParam == VK_LEFT) {
+				seekValue -= 1000;
+				forceRender = 1;
+				return 0;
+			}
 		}
 		break;
 	case WM_PAINT:
