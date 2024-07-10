@@ -90,14 +90,24 @@ LRESULT CALLBACK StartupWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPara
 		}
 	case WM_COMMAND:
 		if (LOWORD(wParam) == IDC_BTN_START) {
-			didStart = 1;
-			updatemetrics(hWnd);
-			DestroyWindow(hWnd);
-			startdemo();
+			break;
+		}
+		return 0;
+	case WM_KEYDOWN:
+		if (wParam == VK_RETURN) {
+			break;
+		}
+		if (wParam == VK_ESCAPE) {
+			PostQuitMessage(0);
 		}
 		return 0;
 	default: return DefWindowProc(hWnd, msg, wParam, lParam);
 	}
+
+	didStart = 1;
+	updatemetrics(hWnd);
+	DestroyWindow(hWnd);
+	startdemo();
 }
 
 //gcc+ld? int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
