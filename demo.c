@@ -116,6 +116,11 @@ void demo()
 
 		newTickCount = GetTickCount() + seekValue;
 		ms = newTickCount - startTickCount;
+		if (ms < 0) {
+			ms = 0;
+			seekValue = -(GetTickCount() - startTickCount);
+			newTickCount = startTickCount;
+		}
 		lastTickCount = newTickCount;
 
 		dorender = newTickCount - renderTickCount > 10 || forceRender;
@@ -148,6 +153,16 @@ void demo()
 			t = -1.0f * t * (t - 2.0f);
 			for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
 				explosion_do(i, t);
+			}
+		} else {
+			if (!IsWindowVisible(wins.main.hWnd)) {
+				ShowWindow(wins.main.hWnd, SW_SHOW);
+				dorender = 1;
+				for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
+					DemoCalcCellLoadingPos(&pos);
+					SetWindowPos(wins.cells[i].hWnd, NULL, pos.x, pos.y, 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
+				}
+				cellsShown = 0;
 			}
 		}
 
