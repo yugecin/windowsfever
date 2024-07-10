@@ -118,7 +118,7 @@ void demo()
 		ms = newTickCount - startTickCount;
 		if (ms < 0) {
 			ms = 0;
-			seekValue = -(GetTickCount() - startTickCount);
+			seekValue = -(int) ((GetTickCount() - startTickCount));
 			newTickCount = startTickCount;
 		}
 		lastTickCount = newTickCount;

@@ -1,4 +1,4 @@
-static char *fragSource =
+static const char *fragSource =
 "\n#version 430\n"
 "layout (location=0) uniform float par[5];"
 "\n#define iTime par[0]\n"

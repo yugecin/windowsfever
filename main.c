@@ -92,6 +92,7 @@ LRESULT CALLBACK StartupWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPara
 	updatemetrics(hWnd);
 	DestroyWindow(hWnd);
 	startdemo();
+	return 0;
 }
 
 //gcc+ld? int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
@@ -101,7 +102,6 @@ LRESULT CALLBACK StartupWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPara
 void WinMainCRTStartup(void)
 {
 	MSG msg;
-	HANDLE hWnd;
 	WNDCLASSEX wc = {0};
 	NONCLIENTMETRICS nonClientMetrics;
 
@@ -127,7 +127,7 @@ void WinMainCRTStartup(void)
 		ExitProcess(1);
 	}
 
-	hWnd = CreateWindowEx(
+	CreateWindowEx(
 		WS_EX_APPWINDOW, wc.lpszClassName, DEMONAME,
 		(WS_OVERLAPPEDWINDOW | WS_VISIBLE) & ~(WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_THICKFRAME),
 		REQUESTED_POSITION, REQUESTED_POSITION, REQUESTED_SIZE, REQUESTED_SIZE, 0, 0, wc.hInstance, 0

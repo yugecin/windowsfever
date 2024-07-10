@@ -15,7 +15,7 @@ void glstuff_get_procs()
 	glUseProgramStages = (void*) wglGetProcAddress("glUseProgramStages");
 }
 
-char *vertSource =
+const char *vertSource =
 	"#version 430\n"
 	"layout (location=0) in vec2 i;"
 	"out vec2 p;"
