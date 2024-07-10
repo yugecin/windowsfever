@@ -126,9 +126,9 @@ void demo()
 		dorender = newTickCount - renderTickCount > 10 || forceRender;
 		forceRender = 0;
 
-		if (ms > 10000) {
+		if (ms > 7000) {
 			if (!IsWindowVisible(wins.main.hWnd)) {
-				ShowWindow(wins.main.hWnd, SW_SHOW);
+				DemoSetWindowPos(&wins.main, grid.pos, wins.main.clientSize, SWP_NOZORDER | SWP_SHOWWINDOW | SWP_NOSIZE);
 				dorender = 1;
 				for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
 					DemoCalcCellLoadingPos(&pos);
@@ -146,23 +146,27 @@ void demo()
 				dorender = 1;
 				ShowWindow(wins.main.hWnd, SW_HIDE);
 			}
-			t = (ms - 4000) / 6000.0f * 1.15f;
-			if (t > 1.0f) {
-				t = 1.0f;
-			}
-			t = -1.0f * t * (t - 2.0f);
+			t = (ms - 4100) / 2800.0f;
+			if (t < 0.0f) t = 0.0f;
+			else if (t > 1.0f) t = 1.0f;
 			for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
 				explosion_do(i, t);
 			}
 		} else {
 			if (!IsWindowVisible(wins.main.hWnd)) {
-				ShowWindow(wins.main.hWnd, SW_SHOW);
+				DemoSetWindowPos(&wins.main, grid.pos, wins.main.clientSize, SWP_NOZORDER | SWP_SHOWWINDOW | SWP_NOSIZE);
 				dorender = 1;
 				for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
 					DemoCalcCellLoadingPos(&pos);
 					SetWindowPos(wins.cells[i].hWnd, NULL, pos.x, pos.y, 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
 				}
 				cellsShown = 0;
+			}
+			if (ms > 2000 && ms % 10) {
+				srand(ms);
+				wins.main.framePos.x = grid.pos.x + (randn(ms - 2000) - (ms - 2000) / 2) / 30;
+				wins.main.framePos.y = grid.pos.y + (randn(ms - 2000) - (ms - 2000) / 2) / 30;
+				DemoSetWindowPos(&wins.main, wins.main.framePos, wins.main.clientSize, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
 			}
 		}
 
