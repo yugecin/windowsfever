@@ -192,10 +192,8 @@ void startdemo()
 	wcDemo.lpszClassName = "demo";
 	wcDemo.hIconSm = LoadIcon(NULL, IDI_APPLICATION); /*small icon (taskbar)*/
 	if (!RegisterClassEx(&wcDemo)) {
-		err = GetLastError();
-		showconsole();
-		printf("failed to register demo class: %d\n", err);
-		error_exit_loop();
+		MessageBoxA(NULL, "failed to register demo class", DEMONAME, MB_OK);
+		ExitProcess(2);
 	}
 
 	size.y = grid.size.y * 2;

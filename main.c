@@ -2,6 +2,8 @@
 
 #define DEMONAME "windows"
 
+#define _INC_STDLIB // don't want it
+
 //#define WIN32_LEAN_AND_MEAN
 //#define WIN32_EXTRA_LEAN
 #include "windows.h"
@@ -10,25 +12,16 @@
 #include "glext.h"
 #include "glstuff.c"
 #include "frag.glsl.c"
-#ifdef CONSOLE_DEBUG_MESSAGES
-#include <stdio.h>
-#endif
+#include "util.c"
 
 WNDCLASSEX wcDemo = {0};
 HFONT hfDefault;
-DWORD err;
 int i;
 #define REQUESTED_SIZE 210
 #define REQUESTED_POSITION 200
 
 #define IDC_BTN_START 3
 #define IDC_BTN_FULLSCREEN 4
-
-void showconsole()
-{
-	AllocConsole();
-	freopen("CONOUT$", "w+", stdout);
-}
 
 void error_exit_loop()
 {
@@ -136,10 +129,8 @@ void WinMainCRTStartup(void)
 	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION); /*small icon (taskbar)*/
 
 	if (!RegisterClassEx(&wc)) {
-		err = GetLastError();
-		showconsole();
-		printf("failed to register startup class: %d\n", err);
-		error_exit_loop();
+		MessageBoxA(NULL, "failed to register startup class", DEMONAME, MB_OK);
+		ExitProcess(1);
 	}
 
 	hWnd = CreateWindowEx(

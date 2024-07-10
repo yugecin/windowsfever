@@ -174,9 +174,9 @@ void DemoMakeWin(struct win *this, POINT pos, POINT size, char *title, int flags
 		glInfoLogBufSize = 0;
 		glGetProgramInfoLog(frag, sizeof(glInfoLogBuf), &glInfoLogBufSize, glInfoLogBuf);
 		if (glInfoLogBuf[0] && glInfoLogBufSize) {
-			showconsole();
-			printf("gl info log is not emtpy, assuming error:\n%s", glInfoLogBuf);
-			error_exit_loop();
+			MessageBoxA(NULL, "gl info log is not emtpy, assuming error:", DEMONAME, MB_OK);
+			MessageBoxA(NULL, glInfoLogBuf, DEMONAME, MB_OK);
+			ExitProcess(1);
 		}
 	}
 }
