@@ -37,7 +37,7 @@ void grid_init()
 /*since a hglrc can be used for any hdc that was made on the same device with the same
   pixel format, we only need one hglrc, even if multiple windows want to use opengl*/
 HGLRC hGLRC;
-/*that also means the shader is compiled once and can be reused*/
+/*previous comment also means the shader is compiled once and can be reused*/
 GLuint frag;
 
 struct win {
@@ -104,9 +104,8 @@ void DemoSetWindowPos(struct win *this, POINT pos, POINT size, int swpFlags)
 
 void DemoCalcCellLoadingPos(POINT *pos)
 {
-	// TODO: actually center them
-	pos->x = wins.loader.framePos.x + grid.size.x / 2;
-	pos->y = wins.loader.framePos.y + grid.size.y / 2;
+	pos->x = wins.loader.framePos.x + (wins.loader.frameSize.x - grid.size.x) / 2;
+	pos->y = wins.loader.framePos.y + (wins.loader.frameSize.y - grid.size.y) / 2;
 }
 
 void DemoRenderGl(struct win *this)

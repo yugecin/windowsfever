@@ -3,6 +3,7 @@ int forceRender; /*to force a gl render instead of waiting for fps delay*/
 #define LOADERMAX (sizeof(wins)*2/sizeof(struct win))
 int loaderCurrent; /*loader window progress bar*/
 int expectLoaderClose; /*so we only quit if loader is closed without us asking it*/
+POINT nullpt;
 
 struct {
 	int start, last, now, render;
@@ -309,8 +310,7 @@ void startdemo()
 	explosion_init();
 
 	for (i = 0; i < GRID_CELLS_HORZ * 2 + GRID_CELLS_VERT * 2 + 4; i++) {
-		// TODO: even though they're already hidden, this will show a 1ms hiding animation on win11
-		DemoRestoreWindow(wins.border + i, SWP_HIDEWINDOW);
+		DemoSetWindowPos(wins.border + i, nullpt, nullpt, SWP_HIDEWINDOW | SWP_NOSIZE | SWP_NOMOVE);
 	}
 
 	// render main window once so initial render lag doesn't affect demo timing
