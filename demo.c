@@ -111,22 +111,23 @@ void pumpmessages()
 	}
 }
 
+struct {
+	int ms, doRenderGL, doRenderCellsGL;
+} demostate;
+
+#include "demotick.c"
 void demo()
 {
-	static int cellsShown = 0;
-
-	int ms, dorender, tmp;
-	POINT pos;
-	float t;
 
 	sound_play(0);
 	tickCount.render = -1000;
 	tickCount.start = tickCount.last = GetTickCount();
+	demostate.doRenderCellsGL = 0;
 	for (;;) {
 		pumpmessages();
 
 		tickCount.now = GetTickCount();
-		ms = tickCount.now - tickCount.start;
+		demostate.ms = tickCount.now - tickCount.start;
 		tickCount.last = tickCount.now;
 
 #ifdef TICKCOUNT_BY_AUDIOPOSITION
@@ -136,66 +137,17 @@ void demo()
 		}
 #endif
 
-		dorender = tickCount.now - tickCount.render > 10 || forceRender;
-		forceRender = 0;
-
-		if (ms > 7000) {
-			if (!IsWindowVisible(wins.main.hWnd)) {
-				DemoSetWindowPos(&wins.main, grid.pos, wins.main.clientSize, SWP_NOZORDER | SWP_SHOWWINDOW | SWP_NOSIZE);
-				dorender = 1;
-				for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
-					DemoCalcCellLoadingPos(&pos);
-					SetWindowPos(wins.cells[i].hWnd, NULL, pos.x, pos.y, 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
-				}
-				cellsShown = 0;
-			}
-		} else if (ms > 4000) {
-			dorender = 1;
-			if (IsWindowVisible(wins.main.hWnd)) {
-				cellsShown = 1;
-				for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
-					DemoRestoreWindow(wins.cells + i, SWP_NOSIZE | SWP_NOACTIVATE);
-				}
-				dorender = 1;
-				ShowWindow(wins.main.hWnd, SW_HIDE);
-			}
-			t = eq_out_cubic((ms - 4100) / 2800.0f);
-			if (t < 0.0f) t = 0.0f;
-			else if (t > 1.0f) t = 1.0f;
-			for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
-				explosion_do(wins.cells + i, i, t);
-			}
-		} else {
-			if (!IsWindowVisible(wins.main.hWnd)) {
-				DemoSetWindowPos(&wins.main, grid.pos, wins.main.clientSize, SWP_NOZORDER | SWP_SHOWWINDOW | SWP_NOSIZE);
-				dorender = 1;
-				for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
-					DemoCalcCellLoadingPos(&pos);
-					SetWindowPos(wins.cells[i].hWnd, NULL, pos.x, pos.y, 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
-				}
-				cellsShown = 0;
-			}
-			if (ms > 1000 && ms % 10) {
-				tmp = (int) (100 * eq_in_quart((ms - 1000) / 3000.0f));
-				srand(ms);
-				wins.main.framePos.x = grid.pos.x + (randn(tmp) - (tmp) / 2);
-				wins.main.framePos.y = grid.pos.y + (randn(tmp) - (tmp) / 2);
-				DemoSetWindowPos(&wins.main, wins.main.framePos, wins.main.clientSize, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
-			}
-		}
-
-		if (dorender) {
+		demostate.doRenderGL = tickCount.now - tickCount.render > 10;
+		demotick();
+		if (demostate.doRenderGL) {
 			tickCount.render = tickCount.now;
-			//SetWindowPos(hWnd, 0, 10 + (t / 10) % 100, 10, 0, 0, SWP_NOOWNERZORDER | SWP_NOSIZE | SWP_NOZORDER);
 
-			uniformPar.fTime = ms / 1000.0f;
+			uniformPar.fTime = demostate.ms / 1000.0f;
 			uniformPar.umin = uniformPar.vmin = 0.0f;
 			uniformPar.umax = uniformPar.vmax = 1.0f;
 			DemoRenderGl(&wins.main);
 
-			//DemoBitBltClientArea(&wins.cells[0], &wins.main, 0, 0);
-
-			if (cellsShown) {
+			if (demostate.doRenderCellsGL) {
 				render_shader_in_cells();
 			}
 		}
