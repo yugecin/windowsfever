@@ -128,6 +128,13 @@ void demo()
 		ms = tickCount.now - tickCount.start;
 		tickCount.last = tickCount.now;
 
+#ifdef TICKCOUNT_BY_AUDIOPOSITION
+		ms = sound_get_pos_ms();
+		if (ms == SOUND_END) {
+			ExitProcess(0);
+		}
+#endif
+
 		dorender = tickCount.now - tickCount.render > 10 || forceRender;
 		forceRender = 0;
 

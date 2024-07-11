@@ -8,6 +8,7 @@ struct {
     DWORD rawSize;
     int totalSamples;
     int startSample;
+    int isPlaying;
 } sound;
 
 #define MAXRAWSIZE 2000000
@@ -27,6 +28,7 @@ void sound_init()
 	sound.wavFormat.nSamplesPerSec = SAMPLES_PER_SEC;
 	sound.wavFormat.nBlockAlign = BYTES_PER_SAMPLE * CHANNELS;
 	sound.wavFormat.nAvgBytesPerSec = BYTES_PER_SEC;
+	sound.isPlaying = 0;
 
 	sound.raw = HeapAlloc(GetProcessHeap(), 0, MAXRAWSIZE); 
 	hFile = CreateFile("shrug2point0.raw", GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
@@ -57,6 +59,7 @@ void sound_play(int startSample)
 {
 	DWORD offset;
 
+	sound.isPlaying = 0;
 	waveOutReset(sound.hWaveout);
 	offset = startSample * BYTES_PER_SAMPLE * CHANNELS;
 	if (offset >= sound.rawSize) {
@@ -75,6 +78,7 @@ void sound_play(int startSample)
 		MessageBoxA(NULL, "waveOutWrite err", DEMONAME, MB_OK);
 		ExitProcess(0);
 	}
+	sound.isPlaying = 1;
 }
 
 void sound_seek_relative_seconds(int seek_seconds)
@@ -82,11 +86,30 @@ void sound_seek_relative_seconds(int seek_seconds)
 	MMTIME mmtime;
 	int newsample;
 
+	if (!sound.isPlaying) {
+		sound_play(0);
+		return;
+	}
 	mmtime.wType = TIME_SAMPLES; // TIME_MS seems to not work as I want (too high values)
 	waveOutGetPosition(sound.hWaveout, &mmtime, sizeof(mmtime));
 	newsample = mmtime.u.sample + sound.startSample + seek_seconds * BYTES_PER_SEC;
-	if (newsample < 0) newsample = 0;
 	if (newsample < sound.totalSamples) {
-		sound_play(newsample);
+		sound_play(newsample < 0 ? 0 : newsample);
 	}
+}
+
+#define SOUND_END -1
+int sound_get_pos_ms()
+{
+	MMTIME mmtime;
+
+	if (!sound.isPlaying) {
+		return (int) (sound.totalSamples * 1000.0f / SAMPLES_PER_SEC);
+	}
+	mmtime.wType = TIME_SAMPLES; // TIME_MS seems to not work as I want (too high values)
+	waveOutGetPosition(sound.hWaveout, &mmtime, sizeof(mmtime));
+	if (mmtime.u.sample >= sound.totalSamples) {
+		return SOUND_END;
+	}
+	return (int) ((mmtime.u.sample + sound.startSample) * 1000.0f / SAMPLES_PER_SEC);
 }
