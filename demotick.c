@@ -51,11 +51,13 @@ void ensurecellshidden()
 }
 
 POINT tmpPos;
-int tmp;
+int tmp, dccookie;
 float t;
 
 void demotick()
 {
+	HDC hDC;
+
 	if (isperiod(0, 6350)) {
 		// start
 		ensuremainshown();
@@ -81,9 +83,32 @@ void demotick()
 		for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
 			explosion_do(wins.cells + i, i, t);
 		}
-	} else if (isperiod(11050, 20000)) {
+	} else if (isperiod(11050, 11750)) {
+		ensuremainshown();
+		ensurecellshidden();
+		for (i = 0; i < GRID_BORDERCELLS; i++) {
+			if (!wins.border[i].shown) {
+				DemoSetWindowState(wins.border + i, NULL, grid.borderpos[i], grid.size, SWP_SHOWWINDOW | SWP_NOACTIVATE);
+			}
+			tmp = 255 - (int) (255 * period.t);
+			hDC = wins.border[i].hBackDC;
+			dccookie = SaveDC(hDC);
+			SetDCBrushColor(hDC, RGB(tmp, tmp, tmp));
+			SetDCPenColor(hDC, RGB(tmp, tmp, tmp));
+			SelectObject(hDC, GetStockObject(DC_BRUSH));
+			SelectObject(hDC, GetStockObject(DC_PEN));
+			Rectangle(hDC, 0, 0, wins.border[i].clientSize.x - 1, wins.border[i].clientSize.y - 1);
+			RestoreDC(hDC, dccookie);
+			RedrawWindow(wins.border[i].hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
+		}
+	} else if (isperiod(11750, 20000)) {
 		// end
 		ensuremainshown();
 		ensurecellshidden();
+		for (i = 0; i < GRID_BORDERCELLS; i++) {
+			if (wins.border[i].shown) {
+				DemoSetWindowState(wins.border + i, NULL, nullpt, nullpt, SWP_HIDEWINDOW | SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE);
+			}
+		}
 	}
 }

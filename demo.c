@@ -68,6 +68,23 @@ LRESULT CALLBACK DemoWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	return DefWindowProc(hWnd, msg, wParam, lParam);
 }
 
+LRESULT CALLBACK BorderCellWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	PAINTSTRUCT ps;
+
+	if (msg == WM_PAINT) {
+		for (i = 0; i < GRID_BORDERCELLS; i++) {
+			if (hWnd == wins.border[i].hWnd) {
+				BeginPaint(hWnd, &ps);
+				BitBlt(ps.hdc, 0, 0, wins.border[i].clientSize.x, wins.border[i].clientSize.y, wins.border[i].hBackDC, 0, 0, SRCCOPY);
+				EndPaint(hWnd, &ps);
+				return 0;
+			}
+		}
+	}
+	return CallWindowProc(DemoWndProc, hWnd, msg, wParam, lParam);
+}
+
 void render_shader_in_cells()
 {
 	POINT cellClientSize;
@@ -192,7 +209,8 @@ void startdemo()
 	}
 
 	for (i = 0; i < GRID_BORDERCELLS; i++) {
-		DemoMakeWin(wins.border + i, grid.cellLoadingPos, grid.size, "m", 0);
+		DemoMakeWin(wins.border + i, grid.cellLoadingPos, grid.size, "m", MW_BACKDC);
+		SetWindowLong(wins.border[i].hWnd, GWL_WNDPROC, (LONG) (LONG_PTR) &BorderCellWndProc);
 		DemoSetWindowState(wins.border + i, wins.loader.hWnd, nullpt, nullpt, SWP_SHOWWINDOW | SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWS_ZORDER);
 		loaderCurrent++;
 		RedrawWindow(wins.loader.hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
