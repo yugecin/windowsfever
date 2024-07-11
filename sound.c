@@ -6,9 +6,15 @@ struct {
     WAVEHDR wavHdr;
     char *raw;
     DWORD rawSize;
+    int totalSamples;
+    int startSample;
 } sound;
 
 #define MAXRAWSIZE 2000000
+#define SAMPLES_PER_SEC 44100
+#define BYTES_PER_SAMPLE 2
+#define CHANNELS 1
+#define BYTES_PER_SEC (SAMPLES_PER_SEC * BYTES_PER_SAMPLE * CHANNELS)
 
 void sound_init()
 {
@@ -16,11 +22,11 @@ void sound_init()
 
 	sound.wavFormat.cbSize = 0;
 	sound.wavFormat.wFormatTag = WAVE_FORMAT_PCM;
-	sound.wavFormat.nChannels = 1;
-	sound.wavFormat.wBitsPerSample = 16;
-	sound.wavFormat.nSamplesPerSec = 44100;
-	sound.wavFormat.nBlockAlign = sound.wavFormat.nChannels * sound.wavFormat.wBitsPerSample / 8;
-	sound.wavFormat.nAvgBytesPerSec = sound.wavFormat.nSamplesPerSec * sound.wavFormat.nBlockAlign;
+	sound.wavFormat.nChannels = CHANNELS;
+	sound.wavFormat.wBitsPerSample = BYTES_PER_SAMPLE * 8;
+	sound.wavFormat.nSamplesPerSec = SAMPLES_PER_SEC;
+	sound.wavFormat.nBlockAlign = BYTES_PER_SAMPLE * CHANNELS;
+	sound.wavFormat.nAvgBytesPerSec = BYTES_PER_SEC;
 
 	sound.raw = HeapAlloc(GetProcessHeap(), 0, MAXRAWSIZE); 
 	hFile = CreateFile("shrug2point0.raw", GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
@@ -39,18 +45,28 @@ void sound_init()
 		ExitProcess(0);
 	}
 
+	sound.totalSamples = sound.rawSize / CHANNELS / BYTES_PER_SAMPLE;
+
 	if (waveOutOpen(&sound.hWaveout, WAVE_MAPPER, &sound.wavFormat, (DWORD_PTR) NULL, 0, CALLBACK_NULL) != MMSYSERR_NOERROR) {
 		MessageBoxA(NULL, "waveOutOpen err", DEMONAME, MB_OK);
 		ExitProcess(0);
 	}
-	sound.wavHdr.lpData = sound.raw;
-	sound.wavHdr.dwBufferLength = sound.rawSize;
-	sound.wavHdr.dwFlags = 0;
-	sound.wavHdr.dwLoops = 0;
 }
 
-void sound_play()
+void sound_play(int startSample)
 {
+	DWORD offset;
+
+	waveOutReset(sound.hWaveout);
+	offset = startSample * BYTES_PER_SAMPLE * CHANNELS;
+	if (offset >= sound.rawSize) {
+		return;
+	}
+	sound.startSample = startSample;
+	sound.wavHdr.lpData = sound.raw + offset;
+	sound.wavHdr.dwBufferLength = sound.rawSize - offset;
+	sound.wavHdr.dwFlags = 0;
+	sound.wavHdr.dwLoops = 0;
 	if (waveOutPrepareHeader(sound.hWaveout, &sound.wavHdr, sizeof(sound.wavHdr)) != MMSYSERR_NOERROR) {
 		MessageBoxA(NULL, "waveOutPrepareHeader err", DEMONAME, MB_OK);
 		ExitProcess(0);
@@ -58,5 +74,19 @@ void sound_play()
 	if (waveOutWrite(sound.hWaveout, &sound.wavHdr, sizeof(sound.wavHdr))) {
 		MessageBoxA(NULL, "waveOutWrite err", DEMONAME, MB_OK);
 		ExitProcess(0);
+	}
+}
+
+void sound_seek_relative_seconds(int seek_seconds)
+{
+	MMTIME mmtime;
+	int newsample;
+
+	mmtime.wType = TIME_SAMPLES; // TIME_MS seems to not work as I want (too high values)
+	waveOutGetPosition(sound.hWaveout, &mmtime, sizeof(mmtime));
+	newsample = mmtime.u.sample + sound.startSample + seek_seconds * BYTES_PER_SEC;
+	if (newsample < 0) newsample = 0;
+	if (newsample < sound.totalSamples) {
+		sound_play(newsample);
 	}
 }

@@ -41,11 +41,13 @@ LRESULT CALLBACK DemoWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		if (hWnd != wins.loader.hWnd) {
 			if (wParam == VK_RIGHT) {
 				seekValue += 1000;
+				sound_seek_relative_seconds(1);
 				forceRender = 1;
 				return 0;
 			}
 			if (wParam == VK_LEFT) {
 				seekValue -= 1000;
+				sound_seek_relative_seconds(-1);
 				forceRender = 1;
 				return 0;
 			}
@@ -110,7 +112,7 @@ void demo()
 	POINT pos;
 	float t;
 
-	sound_play();
+	sound_play(0);
 	renderTickCount = -1000;
 	startTickCount = lastTickCount = GetTickCount();
 	for (;;) {
