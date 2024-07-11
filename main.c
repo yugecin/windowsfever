@@ -13,6 +13,7 @@
 #include "glstuff.c"
 #include "frag.glsl.c"
 #include "util.c"
+#include "sound.c"
 
 WNDCLASSEX wcDemo = {0};
 HFONT hfDefault;

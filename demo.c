@@ -109,6 +109,7 @@ void demo()
 	POINT pos;
 	float t;
 
+	sound_play();
 	renderTickCount = -1000;
 	startTickCount = lastTickCount = GetTickCount();
 	for (;;) {
@@ -223,6 +224,8 @@ void startdemo()
 	DemoMakeWin(&wins.loader, pos, size, DEMONAME, MW_VISIBLE | MW_BACKDC);
 	loaderCurrent = 2;
 	render_loader();
+
+	sound_init();
 
 	pos = grid.pos;
 	size.x = grid.size.x * GRID_CELLS_HORZ;
