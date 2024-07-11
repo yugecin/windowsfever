@@ -130,8 +130,8 @@ void demo()
 		tickCount.last = tickCount.now;
 
 #ifdef TICKCOUNT_BY_AUDIOPOSITION
-		ms = sound_get_pos_ms();
-		if (ms == SOUND_END) {
+		demostate.ms = sound_get_pos_ms();
+		if (demostate.ms == SOUND_END) {
 			ExitProcess(0);
 		}
 #endif
