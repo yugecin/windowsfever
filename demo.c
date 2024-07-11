@@ -114,7 +114,7 @@ void demo()
 {
 	static int cellsShown = 0;
 
-	int ms, dorender;
+	int ms, dorender, tmp;
 	POINT pos;
 	float t;
 
@@ -174,10 +174,11 @@ void demo()
 				}
 				cellsShown = 0;
 			}
-			if (ms > 2000 && ms % 10) {
+			if (ms > 1000 && ms % 10) {
+				tmp = (int) (100 * eq_in_quart((ms - 1000) / 3000.0f));
 				srand(ms);
-				wins.main.framePos.x = grid.pos.x + (randn(ms - 2000) - (ms - 2000) / 2) / 30;
-				wins.main.framePos.y = grid.pos.y + (randn(ms - 2000) - (ms - 2000) / 2) / 30;
+				wins.main.framePos.x = grid.pos.x + (randn(tmp) - (tmp) / 2);
+				wins.main.framePos.y = grid.pos.y + (randn(tmp) - (tmp) / 2);
 				DemoSetWindowPos(&wins.main, wins.main.framePos, wins.main.clientSize, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
 			}
 		}

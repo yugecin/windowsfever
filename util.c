@@ -14,6 +14,9 @@ void srand(unsigned int seed)
 
 int randn(int maxexcl)
 {
+	if (maxexcl <= 1) {
+		return 0;
+	}
 	return rand() / (RAND_MAX / maxexcl + 1);
 }
 
@@ -38,4 +41,14 @@ float eq_out_quint(float t) // fasterest
 {
 	t = t - 1.0f;
 	return t * t * t * t * t + 1.0f;
+}
+
+float eq_in_quad(float t)
+{
+	return t * t * t * t;
+}
+
+float eq_in_quart(float t)
+{
+	return t * t * t * t;
 }
