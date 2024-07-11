@@ -158,13 +158,9 @@ void demo()
 				dorender = 1;
 				ShowWindow(wins.main.hWnd, SW_HIDE);
 			}
-			t = (ms - 4100) / 2800.0f;
+			t = eq_out_cubic((ms - 4100) / 2800.0f);
 			if (t < 0.0f) t = 0.0f;
 			else if (t > 1.0f) t = 1.0f;
-			//t = -1.0f * t * (t - 2.0f); // OUT_QUAD (fast)
-			t = t - 1.0f; t = t * t * t + 1.0f; // OUT_CUBIC (faster)
-			//t = t - 1.0f; t = -1.0f * (t * t * t * t - 1.0f); // OUT_QUART (fastest)
-			//t = t - 1.0f; t = t * t * t * t * t + 1.0f; // OUT_QUINT (fasterest)
 			for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
 				explosion_do(i, t);
 			}
