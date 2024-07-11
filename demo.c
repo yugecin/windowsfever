@@ -162,7 +162,7 @@ void demo()
 			if (t < 0.0f) t = 0.0f;
 			else if (t > 1.0f) t = 1.0f;
 			for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
-				explosion_do(i, t);
+				explosion_do(wins.cells + i, i, t);
 			}
 		} else {
 			if (!IsWindowVisible(wins.main.hWnd)) {

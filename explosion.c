@@ -54,10 +54,9 @@ void explosion_init()
 	}
 }
 
-void explosion_do(int index, float progress)
+void explosion_do(struct win *win, int index, float progress)
 {
 	struct explosion *et = explosiontracker + i;
-	struct win *win = wins.cells + i;
 	POINT pos, size, isUneven;
 
 	pos.x = et->from.x + (int) ((et->to.x - et->from.x) * progress);
