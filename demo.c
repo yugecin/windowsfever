@@ -4,6 +4,10 @@ int forceRender; /*to force a gl render instead of waiting for fps delay*/
 int loaderCurrent; /*loader window progress bar*/
 int expectLoaderClose; /*so we only quit if loader is closed without us asking it*/
 
+struct {
+	int start, last, now, render;
+} tickCount;
+
 void render_loader()
 {
 	int w, h, dccookie;
@@ -40,13 +44,15 @@ LRESULT CALLBACK DemoWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	case WM_KEYDOWN:
 		if (hWnd != wins.loader.hWnd) {
 			if (wParam == VK_RIGHT) {
-				seekValue += 1000;
+				tickCount.start -= 1000;
 				sound_seek_relative_seconds(1);
 				forceRender = 1;
 				return 0;
 			}
 			if (wParam == VK_LEFT) {
-				seekValue -= 1000;
+				tickCount.start += 1000;
+				tickCount.now = GetTickCount();
+				if (tickCount.start > tickCount.now) tickCount.start = tickCount.now;
 				sound_seek_relative_seconds(-1);
 				forceRender = 1;
 				return 0;
@@ -108,26 +114,21 @@ void demo()
 {
 	static int cellsShown = 0;
 
-	int startTickCount, lastTickCount, newTickCount, renderTickCount, ms, dorender;
+	int ms, dorender;
 	POINT pos;
 	float t;
 
 	sound_play(0);
-	renderTickCount = -1000;
-	startTickCount = lastTickCount = GetTickCount();
+	tickCount.render = -1000;
+	tickCount.start = tickCount.last = GetTickCount();
 	for (;;) {
 		pumpmessages();
 
-		newTickCount = GetTickCount() + seekValue;
-		ms = newTickCount - startTickCount;
-		if (ms < 0) {
-			ms = 0;
-			seekValue = -(int) ((GetTickCount() - startTickCount));
-			newTickCount = startTickCount;
-		}
-		lastTickCount = newTickCount;
+		tickCount.now = GetTickCount();
+		ms = tickCount.now - tickCount.start;
+		tickCount.last = tickCount.now;
 
-		dorender = newTickCount - renderTickCount > 10 || forceRender;
+		dorender = tickCount.now - tickCount.render > 10 || forceRender;
 		forceRender = 0;
 
 		if (ms > 7000) {
@@ -175,7 +176,7 @@ void demo()
 		}
 
 		if (dorender) {
-			renderTickCount = newTickCount;
+			tickCount.render = tickCount.now;
 			//SetWindowPos(hWnd, 0, 10 + (t / 10) % 100, 10, 0, 0, SWP_NOOWNERZORDER | SWP_NOSIZE | SWP_NOZORDER);
 
 			uniformPar.fTime = ms / 1000.0f;
