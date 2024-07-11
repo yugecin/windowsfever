@@ -223,7 +223,7 @@ void startdemo()
 	DemoWindowSizeDesiredToReal(&pos, &size);
 	DemoMakeWin(&wins.loader, pos, size, DEMONAME, MW_VISIBLE | MW_BACKDC);
 	loaderCurrent = 2;
-	render_loader();
+	RedrawWindow(wins.loader.hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
 
 	sound_init();
 
