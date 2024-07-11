@@ -238,15 +238,6 @@ void startdemo()
 	loaderCurrent = 2;
 	RedrawWindow(wins.loader.hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
 
-	sound_init();
-
-	pos = grid.pos;
-	size.x = grid.size.x * GRID_CELLS_HORZ;
-	size.y = grid.size.y * GRID_CELLS_VERT;
-	DemoWindowSizeDesiredToReal(&pos, &size);
-	DemoMakeWin(&wins.main, pos, size, "my-first-shader.glsl", MW_GL);
-	loaderCurrent++;
-
 	for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
 		pos.x = grid.pos.x + grid.size.x * (i % GRID_CELLS_HORZ);
 		pos.y = grid.pos.y + grid.size.y * (i / GRID_CELLS_HORZ);
@@ -282,14 +273,8 @@ void startdemo()
 	}
 
 	{
-		DemoRenderGl(&wins.main);
-		loaderCurrent++;
-		pumpmessages();
 		for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
-			wglMakeCurrent(wins.cells[i].hDC, hGLRC);
-			glProgramUniform1fv(frag, 0, 5, (float*) &uniformPar);
-			glRecti(1, 1, -1, -1);
-			SwapBuffers(wins.cells[i].hDC);
+			DemoRenderGl(wins.cells + i);
 			loaderCurrent++;
 			RedrawWindow(wins.loader.hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
 			pumpmessages();
@@ -298,6 +283,7 @@ void startdemo()
 #endif
 		}
 		for (i = 0; i < GRID_CELLS_HORZ * 2 + GRID_CELLS_VERT * 2 + 4; i++) {
+			// TODO: initial render or something? this loop is currently useless
 			loaderCurrent++;
 			RedrawWindow(wins.loader.hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
 			pumpmessages();
@@ -307,19 +293,28 @@ void startdemo()
 		}
 	}
 
-	explosion_init();
-
 	for (i = 0; i < GRID_CELLS_HORZ * 2 + GRID_CELLS_VERT * 2 + 4; i++) {
 		DemoSetWindowPos(wins.border + i, nullpt, nullpt, SWP_HIDEWINDOW | SWP_NOSIZE | SWP_NOMOVE);
 	}
 
-	// render main window once so initial render lag doesn't affect demo timing
-	ShowWindow(wins.main.hWnd, SW_SHOW);
+	sound_init();
+	explosion_init();
+
+	pos = grid.pos;
+	size.x = grid.size.x * GRID_CELLS_HORZ;
+	size.y = grid.size.y * GRID_CELLS_VERT;
+	DemoWindowSizeDesiredToReal(&pos, &size);
+	DemoMakeWin(&wins.main, pos, size, "my-first-shader.glsl", MW_GL | MW_VISIBLE);
+	loaderCurrent++;
+	RedrawWindow(wins.loader.hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
+	pumpmessages();
 	DemoRenderGl(&wins.main);
+	loaderCurrent++;
 
 	// and only destroy loader once main window is actually on screen (otherwise we might reveal the cell windows)
 	expectLoaderClose = 1;
 	DestroyWindow(wins.loader.hWnd);
 
+	pumpmessages();
 	demo();
 }
