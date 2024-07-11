@@ -71,17 +71,17 @@ void demotick()
 			tmpPos.y = grid.pos.y + (randn(tmp) - (tmp) / 2);
 			DemoSetWindowState(&wins.main, NULL, tmpPos, nullpt, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
 		}
-	} else if (isperiod(8150, 11150)) {
+	} else if (isperiod(8150, 11050)) {
 		// explosion
 		ensuremainhidden();
 		ensurecellsshown();
-		t = eq_out_cubic((demostate.ms - 8250) / 2800.0f);
+		t = eq_out_cubic((period.relTime - 100) / (float) (period.duration - 200));
 		if (t < 0.0f) t = 0.0f;
 		else if (t > 1.0f) t = 1.0f;
 		for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
 			explosion_do(wins.cells + i, i, t);
 		}
-	} else if (isperiod(11150, 20000)) {
+	} else if (isperiod(11050, 20000)) {
 		// end
 		ensuremainshown();
 		ensurecellshidden();
