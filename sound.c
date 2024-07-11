@@ -6,7 +6,7 @@ struct {
     WAVEHDR wavHdr;
     char *raw;
     DWORD rawSize;
-    int totalSamples;
+    DWORD totalSamples;
     int startSample;
     int isPlaying;
 } sound;
@@ -84,7 +84,7 @@ void sound_play(int startSample)
 void sound_seek_relative_seconds(int seek_seconds)
 {
 	MMTIME mmtime;
-	int newsample;
+	DWORD newsample;
 
 	if (!sound.isPlaying) {
 		sound_play(0);
