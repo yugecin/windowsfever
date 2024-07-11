@@ -101,7 +101,44 @@ void demotick()
 			RestoreDC(hDC, dccookie);
 			RedrawWindow(wins.border[i].hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
 		}
-	} else if (isperiod(11750, 20000)) {
+	} else if (isperiod(11750, 13750)) {
+		ensuremainshown();
+		ensurecellshidden();
+		for (i = 0; i < GRID_BORDERCELLS; i++) {
+			if (wins.border[i].shown) {
+				DemoSetWindowState(wins.border + i, NULL, nullpt, nullpt, SWP_HIDEWINDOW | SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE);
+			}
+		}
+	} else if (isperiod(13750, 14750)) {
+		ensuremainshown();
+		ensurecellshidden();
+		for (i = 0; i < GRID_BORDERCELLS; i++) {
+			srand(grid.borderpos[i].x);
+			tmp = randn(period.duration - 200);
+			t = (tmp - period.relTime) / 200.0f;
+			if (t < 0.0 || t > 1.0) {
+				if (wins.border[i].shown) {
+					DemoSetWindowState(wins.border + i, NULL, nullpt, nullpt, SWP_HIDEWINDOW | SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE);
+				}
+			} else {
+				t = 1.0f - t;
+				tmp = 255 - (int) (255 * t);
+				hDC = wins.border[i].hBackDC;
+				dccookie = SaveDC(hDC);
+				SetDCBrushColor(hDC, RGB(tmp, tmp, tmp));
+				SetDCPenColor(hDC, RGB(tmp, tmp, tmp));
+				SelectObject(hDC, GetStockObject(DC_BRUSH));
+				SelectObject(hDC, GetStockObject(DC_PEN));
+				Rectangle(hDC, 0, 0, wins.border[i].clientSize.x - 1, wins.border[i].clientSize.y - 1);
+				RestoreDC(hDC, dccookie);
+				tmpPos.x = metrics.rcWork.left + randn(metrics.workingAreaWidth - grid.size.x);
+				tmpPos.y = metrics.rcWork.top + randn(metrics.workingAreaHeight - grid.size.y);
+				DemoSetWindowState(wins.border + i, NULL, tmpPos, nullpt, SWP_SHOWWINDOW | SWP_NOSIZE);
+				RedrawWindow(wins.border[i].hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
+			}
+		}
+		pumpmessages();
+	} else if (isperiod(14750, 20000)) {
 		// end
 		ensuremainshown();
 		ensurecellshidden();
