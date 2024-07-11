@@ -45,7 +45,7 @@ float eq_out_quint(float t) // fasterest
 
 float eq_in_quad(float t)
 {
-	return t * t * t * t;
+	return t * t;
 }
 
 float eq_in_quart(float t)
