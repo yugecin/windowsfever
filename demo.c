@@ -2,6 +2,7 @@ int seekValue; /*to modify current time by pressing left/right arrow keys to see
 int forceRender; /*to force a gl render instead of waiting for fps delay*/
 #define LOADERMAX (sizeof(wins)*2/sizeof(struct win))
 int loaderCurrent; /*loader window progress bar*/
+int expectLoaderClose; /*so we only quit if loader is closed without us asking it*/
 
 void render_loader()
 {
@@ -32,7 +33,7 @@ LRESULT CALLBACK DemoWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch (msg) {
 	case WM_DESTROY:
-		if (hWnd != wins.loader.hWnd) {
+		if (hWnd != wins.loader.hWnd || !expectLoaderClose) {
 			PostQuitMessage(0);
 		}
 		return 0;
@@ -306,6 +307,7 @@ void startdemo()
 	DemoRenderGl(&wins.main);
 
 	// and only destroy loader once main window is actually on screen (otherwise we might reveal the cell windows)
+	expectLoaderClose = 1;
 	DestroyWindow(wins.loader.hWnd);
 
 	demo();
