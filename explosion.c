@@ -57,7 +57,7 @@ void explosion_init()
 void explosion_do(struct win *win, int index, float progress)
 {
 	struct explosion *et = explosiontracker + i;
-	POINT pos, size, isUneven;
+	POINT pos, isUneven;
 
 	pos.x = et->from.x + (int) ((et->to.x - et->from.x) * progress);
 	pos.y = et->from.y + (int) ((et->to.y - et->from.y) * progress);
@@ -73,6 +73,5 @@ void explosion_do(struct win *win, int index, float progress)
 	if (isUneven.x) pos.x = explBounds.right - (pos.x - explBounds.left);
 	if (isUneven.y) pos.y = explBounds.bottom - (pos.y - explBounds.top);
 
-	size.x = size.y = 0;
-	DemoSetWindowPos(win, pos, size, SWP_NOSIZE | SWP_NOACTIVATE);
+	DemoSetWindowState(win, NULL, pos, nullpt, SWP_NOSIZE | SWP_NOACTIVATE);
 }

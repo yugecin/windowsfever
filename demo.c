@@ -3,7 +3,6 @@ int forceRender; /*to force a gl render instead of waiting for fps delay*/
 #define LOADERMAX (sizeof(wins)*2/sizeof(struct win))
 int loaderCurrent; /*loader window progress bar*/
 int expectLoaderClose; /*so we only quit if loader is closed without us asking it*/
-POINT nullpt;
 
 struct {
 	int start, last, now, render;
@@ -137,9 +136,9 @@ void demo()
 		}
 #endif
 
-		demostate.doRenderGL = tickCount.now - tickCount.render > 10;
+		demostate.doRenderGL = demostate.doRenderCellsGL = tickCount.now - tickCount.render > 10;
 		demotick();
-		if (demostate.doRenderGL) {
+		if (demostate.doRenderGL || demostate.doRenderCellsGL) {
 			tickCount.render = tickCount.now;
 
 			uniformPar.fTime = demostate.ms / 1000.0f;
@@ -156,8 +155,6 @@ void demo()
 
 void startdemo()
 {
-	POINT pos, size;
-
 	grid_init();
 
 	uniformPar.fTime = 0.0f;
@@ -181,44 +178,22 @@ void startdemo()
 		ExitProcess(2);
 	}
 
-	size.y = grid.size.y * 2;
-	size.x = size.y * 3;
-	pos.x = metrics.rcWork.left + (metrics.workingAreaWidth - size.x) / 2;
-	pos.y = metrics.rcWork.top + (metrics.workingAreaHeight - size.y) / 2;
-	DemoWindowSizeDesiredToReal(&pos, &size);
-	DemoMakeWin(&wins.loader, pos, size, DEMONAME, MW_VISIBLE | MW_BACKDC);
+	DemoMakeWin(&wins.loader, grid.loaderPos, grid.loaderSize, DEMONAME, MW_VISIBLE | MW_BACKDC);
 	loaderCurrent = 2;
 	RedrawWindow(wins.loader.hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
+	pumpmessages();
 
 	for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
-		pos.x = grid.pos.x + grid.size.x * (i % GRID_CELLS_HORZ);
-		pos.y = grid.pos.y + grid.size.y * (i / GRID_CELLS_HORZ);
-		size = grid.size;
-		DemoWindowSizeDesiredToReal(&pos, &size);
-		DemoMakeWin(wins.cells + i, pos, size, "m", MW_GL);
-		DemoCalcCellLoadingPos(&pos);
-		SetWindowPos(wins.cells[i].hWnd, wins.loader.hWnd, pos.x, pos.y, 0, 0, SWP_SHOWWINDOW | SWP_NOSIZE | SWP_NOACTIVATE);
+		DemoMakeWin(wins.cells + i, grid.cellLoadingPos, grid.size, "m", MW_GL);
+		DemoSetWindowState(wins.cells + i, wins.loader.hWnd, nullpt, nullpt, SWP_SHOWWINDOW | SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWS_ZORDER);
 		loaderCurrent++;
 		RedrawWindow(wins.loader.hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
 		pumpmessages();
 	}
 
-	for (i = 0; i < GRID_CELLS_HORZ * 2 + GRID_CELLS_VERT * 2 + 4; i++) {
-		size = grid.size;
-		if (i < GRID_CELLS_HORZ + 2) {
-			pos.x = grid.pos.x + grid.size.x * (i - 1);
-			pos.y = grid.pos.y - grid.size.y;
-		} else if (i >= GRID_CELLS_HORZ + 2 + GRID_CELLS_VERT * 2) {
-			pos.x = grid.pos.x + grid.size.x * (i - (GRID_CELLS_HORZ + 2 + GRID_CELLS_VERT * 2) - 1);
-			pos.y = grid.pos.y + grid.size.y * GRID_CELLS_VERT;
-		} else {
-			pos.x = grid.pos.x - grid.size.x + grid.size.x * ((i - GRID_CELLS_HORZ - 2) % 2) * (GRID_CELLS_HORZ + 1);
-			pos.y = grid.pos.y + grid.size.y * ((i - GRID_CELLS_HORZ - 2) / 2);
-		}
-		DemoWindowSizeDesiredToReal(&pos, &size);
-		DemoMakeWin(wins.border + i, pos, size, "m", 0);
-		DemoCalcCellLoadingPos(&pos);
-		SetWindowPos(wins.border[i].hWnd, wins.loader.hWnd, pos.x, pos.y, 0, 0, SWP_SHOWWINDOW | SWP_NOSIZE | SWP_NOACTIVATE);
+	for (i = 0; i < GRID_BORDERCELLS; i++) {
+		DemoMakeWin(wins.border + i, grid.cellLoadingPos, grid.size, "m", 0);
+		DemoSetWindowState(wins.border + i, wins.loader.hWnd, nullpt, nullpt, SWP_SHOWWINDOW | SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWS_ZORDER);
 		loaderCurrent++;
 		RedrawWindow(wins.loader.hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
 		pumpmessages();
@@ -246,17 +221,13 @@ void startdemo()
 	}
 
 	for (i = 0; i < GRID_CELLS_HORZ * 2 + GRID_CELLS_VERT * 2 + 4; i++) {
-		DemoSetWindowPos(wins.border + i, nullpt, nullpt, SWP_HIDEWINDOW | SWP_NOSIZE | SWP_NOMOVE);
+		DemoSetWindowState(wins.border + i, NULL, nullpt, nullpt, SWP_HIDEWINDOW | SWP_NOSIZE | SWP_NOMOVE);
 	}
 
 	sound_init();
 	explosion_init();
 
-	pos = grid.pos;
-	size.x = grid.size.x * GRID_CELLS_HORZ;
-	size.y = grid.size.y * GRID_CELLS_VERT;
-	DemoWindowSizeDesiredToReal(&pos, &size);
-	DemoMakeWin(&wins.main, pos, size, "my-first-shader.glsl", MW_GL | MW_VISIBLE);
+	DemoMakeWin(&wins.main, grid.pos, grid.mainSize, "my-first-shader.glsl", MW_GL | MW_VISIBLE);
 	loaderCurrent++;
 	RedrawWindow(wins.loader.hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
 	pumpmessages();
@@ -267,6 +238,5 @@ void startdemo()
 	expectLoaderClose = 1;
 	DestroyWindow(wins.loader.hWnd);
 
-	pumpmessages();
 	demo();
 }

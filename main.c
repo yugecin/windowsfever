@@ -79,7 +79,7 @@ LRESULT CALLBACK StartupWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPara
 		}
 		return 0;
 	case WM_KEYDOWN:
-		if (wParam == VK_RETURN) {
+		if (wParam == VK_RETURN || wParam == VK_SPACE) {
 			break;
 		}
 		if (wParam == VK_ESCAPE) {

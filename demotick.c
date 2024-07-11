@@ -1,3 +1,54 @@
+struct {
+	float t;
+	int relTime;
+	int duration;
+} period;
+
+int isperiod(int from, int to)
+{
+	if (from <= demostate.ms && demostate.ms < to) {
+		period.duration = to - from;
+		period.relTime = demostate.ms - from;
+		period.t = period.relTime / (float) period.duration;
+		return 1;
+	}
+	return 0;
+}
+
+void ensuremainshown()
+{
+	if (!wins.main.shown) {
+		DemoSetWindowState(&wins.main, NULL, grid.pos, wins.main.frameSize, SWP_NOZORDER | SWP_SHOWWINDOW);
+		// pumpmessages so that main window is in fact shown before potentially cells are shown (behind)
+		// otherwise you might be able to see the cells all together in the middle before the main window shows
+		pumpmessages();
+		demostate.doRenderGL = 1;
+	}
+}
+
+void ensuremainhidden()
+{
+	if (wins.main.shown) {
+		DemoSetWindowState(&wins.main, NULL, nullpt, nullpt, SWP_NOMOVE | SWP_NOSIZE | SWP_HIDEWINDOW);
+	}
+}
+
+void ensurecellsshown()
+{
+	for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
+		if (!wins.cells[i].shown) {
+			DemoSetWindowState(wins.cells + i, NULL, grid.cellpos[i], nullpt, SWP_NOSIZE | SWP_NOACTIVATE);
+			demostate.doRenderCellsGL = 1;
+		}
+	}
+}
+
+void ensurecellshidden()
+{
+	for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
+		DemoSetWindowState(wins.cells + i, NULL, grid.cellLoadingPos, nullpt, SWP_NOSIZE | SWP_NOACTIVATE);
+	}
+}
 
 POINT tmpPos;
 int tmp;
@@ -5,47 +56,34 @@ float t;
 
 void demotick()
 {
-	if (demostate.ms > 11150) {
-		if (!IsWindowVisible(wins.main.hWnd)) {
-			DemoSetWindowPos(&wins.main, grid.pos, wins.main.clientSize, SWP_NOZORDER | SWP_SHOWWINDOW | SWP_NOSIZE);
-			for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
-				DemoCalcCellLoadingPos(&tmpPos);
-				SetWindowPos(wins.cells[i].hWnd, NULL, tmpPos.x, tmpPos.y, 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
-			}
-			demostate.doRenderGL = 1;
-			demostate.doRenderCellsGL = 0;
+	if (isperiod(0, 6350)) {
+		// start
+		ensuremainshown();
+		ensurecellshidden();
+	} else if (isperiod(6350, 8150)) {
+		// shake before explosion
+		ensuremainshown();
+		ensurecellshidden();
+		if (demostate.ms % 10) {
+			tmp = (int) (100 * eq_in_quart((demostate.ms - 6350) / 1800.0f));
+			srand(demostate.ms);
+			tmpPos.x = grid.pos.x + (randn(tmp) - (tmp) / 2);
+			tmpPos.y = grid.pos.y + (randn(tmp) - (tmp) / 2);
+			DemoSetWindowState(&wins.main, NULL, tmpPos, nullpt, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
 		}
-	} else if (demostate.ms > 8150) {
-		if (IsWindowVisible(wins.main.hWnd)) {
-			for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
-				DemoRestoreWindow(wins.cells + i, SWP_NOSIZE | SWP_NOACTIVATE);
-			}
-			demostate.doRenderGL = 1;
-			demostate.doRenderCellsGL = 1;
-			ShowWindow(wins.main.hWnd, SW_HIDE);
-		}
+	} else if (isperiod(8150, 11150)) {
+		// explosion
+		ensuremainhidden();
+		ensurecellsshown();
 		t = eq_out_cubic((demostate.ms - 8250) / 2800.0f);
 		if (t < 0.0f) t = 0.0f;
 		else if (t > 1.0f) t = 1.0f;
 		for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
 			explosion_do(wins.cells + i, i, t);
 		}
-	} else {
-		if (!IsWindowVisible(wins.main.hWnd)) {
-			DemoSetWindowPos(&wins.main, grid.pos, wins.main.clientSize, SWP_NOZORDER | SWP_SHOWWINDOW | SWP_NOSIZE);
-			for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
-				DemoCalcCellLoadingPos(&tmpPos);
-				SetWindowPos(wins.cells[i].hWnd, NULL, tmpPos.x, tmpPos.y, 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
-			}
-			demostate.doRenderGL = 1;
-			demostate.doRenderCellsGL = 0;
-		}
-		if (demostate.ms > 6350 && demostate.ms % 10) {
-			tmp = (int) (100 * eq_in_quart((demostate.ms - 6350) / 1800.0f));
-			srand(demostate.ms);
-			wins.main.framePos.x = grid.pos.x + (randn(tmp) - (tmp) / 2);
-			wins.main.framePos.y = grid.pos.y + (randn(tmp) - (tmp) / 2);
-			DemoSetWindowPos(&wins.main, wins.main.framePos, wins.main.clientSize, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
-		}
+	} else if (isperiod(11150, 20000)) {
+		// end
+		ensuremainshown();
+		ensurecellshidden();
 	}
 }
