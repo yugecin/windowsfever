@@ -72,6 +72,7 @@ struct {
 	struct win main;
 	struct win cells[GRID_CELLS_HORZ * GRID_CELLS_VERT];
 	struct win border[GRID_CELLS_HORZ * 2 + GRID_CELLS_VERT * 2 + 4];
+	struct win altMain;
 } wins;
 
 void DemoBitBltClientArea(struct win *dst, struct win *src, int x, int y)

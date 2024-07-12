@@ -4,6 +4,7 @@ int forceRender; /*to force a gl render instead of waiting for fps delay*/
 int loaderCurrent; /*loader window progress bar*/
 int expectLoaderClose; /*so we only quit if loader is closed without us asking it*/
 HANDLE hFont; /*yeah*/
+HDC extraDC; /*yeahh*/
 
 struct {
 	int start, last, now, render;
@@ -82,6 +83,19 @@ LRESULT CALLBACK BorderCellWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 				return 0;
 			}
 		}
+	}
+	return CallWindowProc(DemoWndProc, hWnd, msg, wParam, lParam);
+}
+
+LRESULT CALLBACK AltMainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	PAINTSTRUCT ps;
+
+	if (msg == WM_PAINT) {
+		BeginPaint(hWnd, &ps);
+		BitBlt(ps.hdc, 0, 0, wins.altMain.clientSize.x, wins.altMain.clientSize.y, wins.altMain.hBackDC, 0, 0, SRCCOPY);
+		EndPaint(hWnd, &ps);
+		return 0;
 	}
 	return CallWindowProc(DemoWndProc, hWnd, msg, wParam, lParam);
 }
@@ -247,6 +261,10 @@ void startdemo()
 
 	sound_init();
 	explosion_init();
+
+	DemoMakeWin(&wins.altMain, grid.pos, grid.mainSize, "my-first-shader.glsl", MW_BACKDC);
+	SetWindowLong(wins.altMain.hWnd, GWL_WNDPROC, (LONG) (LONG_PTR) &AltMainWndProc);
+	loaderCurrent+=2;
 
 	DemoMakeWin(&wins.main, grid.pos, grid.mainSize, "my-first-shader.glsl", MW_GL | MW_VISIBLE);
 	loaderCurrent++;
