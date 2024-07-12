@@ -229,12 +229,145 @@ void greetings_intro()
 	pumpmessages();
 }
 
+void greetings()
+{
+	// this relies on having plenty of border cells :)
+	static char *txt[] = {
+		"RBBS",
+		"Ninjadev",
+		"rohtie",
+		"Bongo",
+		"Logicoma",
+		"Slipstream",
+		"lug00ber",
+		"vame",
+		"and you",
+	};
+	static char len[] = {
+		4,
+		8,
+		6,
+		5,
+		8,
+		10,
+		8,
+		4,
+		7
+	};
+
+	int numgr = 9;
+	float timepergreet = 1 / (float) numgr;
+	HDC hDC;
+	float t;
+	POINT from, to;
+	int index;
+	POINT nextpos;
+
+	t = period.t;
+	for (index = 0; index < numgr; index++) {
+		if (t < timepergreet) {
+			break;
+		}
+		t -= timepergreet;
+	}
+
+	t /= timepergreet;
+	switch (index) {
+	case 0:
+	case 7:
+		from.x = metrics.rcFull.right + grid.size.x;
+		from.y = metrics.rcWork.top + grid.size.y;
+		to.x = metrics.rcFull.left - grid.size.x * (len[index] + 1);
+		to.y = metrics.rcWork.bottom - grid.size.y * 2;
+		nextpos.x = grid.size.x;
+		nextpos.y = -grid.size.y / 10;
+		break;
+	case 1:
+	case 5:
+		from.x = metrics.rcWork.left + metrics.workingAreaWidth / 5;
+		from.y = metrics.rcFull.top - grid.size.y * 2;
+		to.x = metrics.rcWork.left + metrics.workingAreaWidth * 3 / 5;
+		to.y = metrics.rcFull.bottom + grid.size.y * (len[index] + 1);
+		nextpos.x = -grid.size.x / 2;
+		nextpos.y = -grid.size.y;
+		break;
+	case 2:
+	case 6:
+		from.x = metrics.rcWork.left + metrics.workingAreaWidth * 4 / 5;
+		from.y = metrics.rcFull.top - grid.size.y * 2;
+		to.x = metrics.rcWork.left + metrics.workingAreaWidth * 3 / 5;
+		to.y = metrics.rcFull.bottom + grid.size.y * (len[index] + 1);
+		nextpos.x = grid.size.x / 5;
+		nextpos.y = -grid.size.y;
+		break;
+	case 3:
+		from.x = metrics.rcFull.right + grid.size.x;
+		from.y = metrics.rcWork.bottom - grid.size.y;
+		to.x = metrics.rcFull.left - grid.size.x * (len[index] + 1);
+		to.y = metrics.rcWork.top + metrics.workingAreaHeight * 3 / 5;
+		nextpos.x = grid.size.x;
+		nextpos.y = grid.size.y / 6;
+		break;
+	case 4:
+	case 8:
+		from.x = metrics.rcWork.left + metrics.workingAreaWidth * 3 / 5;
+		from.y = metrics.rcFull.bottom + grid.size.y * 2;
+		to.x = metrics.rcWork.left + metrics.workingAreaWidth * 2 / 5;
+		to.y = metrics.rcFull.top - grid.size.y * (len[index] + 1);
+		nextpos.x = grid.size.x / 6;
+		nextpos.y = grid.size.y;
+		break;
+	default:
+		return;
+	}
+
+	ensuremainshown();
+	ensurealtmainhidden();
+	ensurecellshidden();
+
+	srand(period.from);
+	for (i = 0; i < GRID_BORDERCELLS; i++) {
+		if (i < len[index]) {
+			hDC = wins.border[i].hBackDC;
+			dccookie = SaveDC(hDC);
+			SetDCBrushColor(hDC, RGB(0, 0, 0));
+			SetDCPenColor(hDC, RGB(0, 0, 0));
+			SelectObject(hDC, GetStockObject(DC_BRUSH));
+			SelectObject(hDC, GetStockObject(DC_PEN));
+			Rectangle(hDC, 0, 0, wins.border[i].clientSize.x - 1, wins.border[i].clientSize.y - 1);
+			SelectObject(hDC, hFont);
+			SetBkColor(hDC, RGB(0, 0, 0));
+			SetBkMode(hDC, TRANSPARENT);
+			SetTextColor(hDC, RGB(255, 255, 255));
+			tmpRect.top = 0;
+			tmpRect.right = wins.border[i].clientSize.x;
+			tmpRect.bottom = wins.border[i].clientSize.y;
+			tmpRect.left = 0;
+			DrawTextA(hDC, txt[index] + i, 1, &tmpRect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+			RestoreDC(hDC, dccookie);
+			tmpPos.x = from.x + (int) ((to.x - from.x) * t) + nextpos.x * i;
+			tmpPos.y = from.y + (int) ((to.y - from.y) * t) + nextpos.y * i;
+			tmpPos.x += (int) (mcos(i * 33 + (period.relTime - period.relTime % 30) / 2) * 13);
+			tmpPos.y += (int) (mcos(i * 13 + (period.relTime - period.relTime % 30) / 2) * 13);
+			DemoSetWindowState(wins.border + i, NULL, tmpPos, nullpt, SWP_SHOWWINDOW | SWP_NOSIZE | (wins.border[i].shown ? SWP_NOACTIVATE : 0));
+			RedrawWindow(wins.border[i].hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
+		} else {
+			if (wins.border[i].shown) {
+				DemoSetWindowState(wins.border + i, NULL, nullpt, nullpt, SWP_HIDEWINDOW | SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE);
+			}
+		}
+	}
+	pumpmessages();
+}
+
 void demotick()
 {
 	HDC hDC;
 
-	if (isperiod(0, 2000)) {
+	if (isperiod(0, 3500)) {
 		greetings_intro();
+	} else if (isperiod(3500, 28000)) {
+		greetings();
 	}
 	return;
 	if (isperiod(0, 10000)) {
