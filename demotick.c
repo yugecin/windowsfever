@@ -83,19 +83,24 @@ float t, t2, t3;
 
 void procrastination_is_a_fuck()
 {
-	int p, backCol, t;
+	int p, backCol, t, t2;
+	float ct;
 	HDC hDC;
+	POINT sz;
 
 	ensuremainhidden();
 	ensurecellshidden();
 	ensurealtmainshown();
 	srand(period.from);
 	p = demostate.ms % 120;
-	if (p < 30) {
-		t = 255 - (int) (255 * p / 30.0f);
+	ct = p / 120.0f;
+	if ((demostate.ms % 240) / 120) {
+		t = 255 - (int) (255 * ct);
 		backCol = RGB(t, t, t);
 	} else {
-		backCol = RGB(255, 60, 60);
+		t = 255 - (int) (255 * ct);
+		t2 = 60 - (int) (60 * ct);
+		backCol = RGB(t, t2, t2);
 	}
 	hDC = wins.altMain.hBackDC;
 	dccookie = SaveDC(hDC);
@@ -120,36 +125,26 @@ void procrastination_is_a_fuck()
 	DrawTextA(hDC, "PROCRASTINATION\r\nIS A\r\nFUCK", -1, &tmpRect, DT_CENTER | DT_NOCLIP);
 	RestoreDC(hDC, dccookie);
 	srand(period.from);
-	if (period.relTime > 3000) {
-		for (i = 0; i < (period.relTime - 3000) / 150; i++) {
-			if (randn(10) < 5) {
-				tmpRect.left = randn(wins.altMain.clientSize.x - 20);
-				tmpRect.right = randn(20);
-				tmpRect.top = randn(wins.altMain.clientSize.y - 20);
-				tmpRect.bottom = randn(wins.altMain.clientSize.y);
-				tmpPos.x = randn(wins.altMain.clientSize.x);
-				tmpPos.y = randn(wins.altMain.clientSize.y);
-			} else {
-				tmpRect.left = randn(wins.altMain.clientSize.x - 20);
-				tmpRect.right = randn(wins.altMain.clientSize.x);
-				tmpRect.top = randn(wins.altMain.clientSize.y - 20);
-				tmpRect.bottom = randn(20);
-				tmpPos.x = randn(wins.altMain.clientSize.x);
-				tmpPos.y = randn(wins.altMain.clientSize.y);
-			}
-			if (tmpRect.left + tmpRect.right > wins.altMain.clientSize.x) {
-				tmpRect.right = wins.altMain.clientSize.x - tmpRect.left;
-			}
-			if (tmpRect.top + tmpRect.bottom > wins.altMain.clientSize.y) {
-				tmpRect.bottom = wins.altMain.clientSize.x - tmpRect.top;
-			}
-			BitBlt(hDC, tmpRect.left, tmpRect.top, tmpRect.right, tmpRect.bottom, hDC, tmpPos.x, tmpPos.y, SRCCOPY);
-		}
+	sz = wins.altMain.clientSize;
+	if (period.relTime % 120 < 30) {
+		BitBlt(hDC, sz.x * 3 / 4, sz.y * 4 / 6, sz.x / 4, sz.y / 2, hDC, sz.x / 2, sz.y / 2, SRCCOPY);
+	}
+	if (period.relTime % 120 < 50) {
+		BitBlt(hDC, sz.x * 1 / 4, sz.y * 5 / 6, sz.x, sz.y / 4, hDC, sz.x / 3, sz.y * 2/5, SRCCOPY);
+	}
+	if (period.relTime % 250 > 100) {
+		BitBlt(hDC, sz.x * 2/6, sz.y * 3/5, sz.x /2, sz.y, hDC, sz.x*2/3, sz.y*4/7, SRCCOPY);
+	}
+	if (period.relTime % 180 > 100) {
+		BitBlt(hDC, sz.x *5/8, sz.y * 3/5, sz.x, sz.y*3/7, hDC, sz.x*4/7, sz.y*3/5, SRCCOPY);
+	}
+	if (period.relTime % 150 < 40) {
+		BitBlt(hDC, sz.x * 3/5, sz.y/6, sz.x / 2, sz.y / 2, hDC, 0, 0, SRCCOPY);
 	}
 	RedrawWindow(wins.altMain.hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
-	srand(demostate.ms % 30);
+	srand(demostate.ms / 120);
 	for (i = 0; i < GRID_BORDERCELLS; i++) {
-		if (i < GRID_BORDERCELLS / 2 && p < 30) {
+		if (i < 5) {
 			hDC = wins.border[i].hBackDC;
 			dccookie = SaveDC(hDC);
 			SetDCBrushColor(hDC, backCol);
@@ -168,6 +163,36 @@ void procrastination_is_a_fuck()
 			}
 		}
 	}
+}
+
+void creds()
+{
+	int whiteness;
+	HDC hDC;
+
+	ensuremainhidden();
+	ensurecellshidden();
+	ensurealtmainshown();
+	whiteness = 255 - (period.relTime % 500) * 255 / 500;
+	hDC = wins.altMain.hBackDC;
+	dccookie = SaveDC(hDC);
+	SetDCBrushColor(hDC, RGB(whiteness, whiteness, whiteness));
+	SetDCPenColor(hDC, RGB(0, 0, 0));
+	SelectObject(hDC, GetStockObject(DC_BRUSH));
+	SelectObject(hDC, GetStockObject(DC_PEN));
+	Rectangle(hDC, 0, 0, wins.altMain.clientSize.x - 1, wins.altMain.clientSize.y - 1);
+	SelectObject(hDC, hSmallFont);
+	SetBkColor(hDC, RGB(0, 0, 0));
+	SetBkMode(hDC, TRANSPARENT);
+	SetTextColor(hDC, RGB(0, 0, 0));
+	tmpRect.top = grid.size.y / 2; // total height of text is supposed to fit in 3 * grid.y (because 3 lines)
+	tmpRect.right = wins.altMain.clientSize.x;
+	tmpRect.bottom = wins.altMain.clientSize.y;
+	tmpRect.left = 0;
+	// this surely will cut off on certain screen configurations
+	DrawTextA(hDC, "code: yugecin\r\nmusic: awildbrysen\r\nmotivation: frauke", -1, &tmpRect, DT_CENTER | DT_NOCLIP);
+	RestoreDC(hDC, dccookie);
+	RedrawWindow(wins.altMain.hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
 }
 
 void greetings_intro()
@@ -364,14 +389,16 @@ void demotick()
 {
 	HDC hDC;
 
+	if (isperiod(0, 3000)) {
+		creds();
+	} else if (isperiod(3000, 4000)) {
+		procrastination_is_a_fuck();
+	}
+	return;
 	if (isperiod(0, 3500)) {
 		greetings_intro();
 	} else if (isperiod(3500, 28000)) {
 		greetings();
-	}
-	return;
-	if (isperiod(0, 10000)) {
-		procrastination_is_a_fuck();
 	}
 	return;
 	if (isperiod(0, 6350)) {

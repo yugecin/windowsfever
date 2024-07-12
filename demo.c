@@ -3,7 +3,7 @@ int forceRender; /*to force a gl render instead of waiting for fps delay*/
 #define LOADERMAX (sizeof(wins)*2/sizeof(struct win))
 int loaderCurrent; /*loader window progress bar*/
 int expectLoaderClose; /*so we only quit if loader is closed without us asking it*/
-HANDLE hFont; /*yeah*/
+HANDLE hFont, hSmallFont; /*yeah*/
 HDC extraDC; /*yeahh*/
 
 struct {
@@ -258,6 +258,7 @@ void startdemo()
 	}
 
 	hFont = CreateFontA(-(int) (grid.size.y * .8f), 0, 0, 0, FW_ULTRABOLD, 0, 0, 0, ANSI_CHARSET, 0, 0, ANTIALIASED_QUALITY, 0, "Arial");
+	hSmallFont = CreateFontA(-(int) (grid.size.y * .6f), 0, 0, 0, FW_ULTRABOLD, 0, 0, 0, ANSI_CHARSET, 0, 0, ANTIALIASED_QUALITY, 0, "Arial");
 
 	sound_init();
 	explosion_init();
