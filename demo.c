@@ -30,7 +30,7 @@ void render_loader()
 	SelectObject(hDC, GetStockObject(BLACK_BRUSH));
 	Rectangle(hDC, 10, 10, w - 10, h - 10);
 	SelectObject(hDC, GetStockObject(WHITE_BRUSH));
-	Rectangle(hDC, 15, 15, loaderExtra + (int) ((w - 15 - 200) * ((float) loaderCurrent / LOADERMAX)), h - 15);
+	Rectangle(hDC, 15, 15, loaderExtra + (int) ((grid.loaderSize.x - 15) * ((float) loaderCurrent / LOADERMAX)), h - 15);
 	RestoreDC(hDC, dccookie);
 
 	BeginPaint(wins.loader.hWnd, &ps);
@@ -236,7 +236,7 @@ void startdemo()
 		DemoMakeWin(wins.border + i, grid.cellLoadingPos, grid.size, "m", MW_BACKDC);
 		SetWindowLong(wins.border[i].hWnd, GWL_WNDPROC, (LONG) (LONG_PTR) &BorderCellWndProc);
 		DemoSetWindowState(wins.border + i, wins.loader.hWnd, nullpt, nullpt, SWP_SHOWWINDOW | SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWS_ZORDER);
-		loaderCurrent++;
+		//loaderCurrent++;
 		RedrawWindow(wins.loader.hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
 		pumpmessages();
 	}
@@ -291,16 +291,19 @@ void startdemo()
 
 	loaderCurrent+= 2; // for the main window, but we don't draw loader after that's loaded so do it now
 
-	for (i = 0; i < 100; i++) {
-		Sleep(3);
+	for (i = 0; i < 200; i++) {
+		Sleep(8);
 		tmpPos.x = grid.loaderSize.x + i;
 		tmpPos.y = grid.loaderSize.y;
-		loaderExtra += 1;
+		if (loaderCurrent < LOADERMAX && i % 10) {
+			loaderCurrent++;
+		}
 		DemoSetWindowState(&wins.loader, NULL, nullpt, tmpPos, SWP_NOMOVE | SWP_NOACTIVATE);
 		RedrawWindow(wins.loader.hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
 		pumpmessages();
 	}
-	loaderExtra += 100;
+	loaderCurrent = LOADERMAX;
+	loaderExtra += 200;
 	RedrawWindow(wins.loader.hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
 	for (i = 0; i < 30; i++) {
 		Sleep(3);
