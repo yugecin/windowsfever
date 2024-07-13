@@ -5,6 +5,8 @@ int loaderCurrent; /*loader window progress bar*/
 int expectLoaderClose; /*so we only quit if loader is closed without us asking it*/
 HANDLE hFont, hSmallFont; /*yeah*/
 HDC extraDC; /*yeahh*/
+HANDLE textsBitmapHandle; /*fuckyeahhh*/
+void *textsBitMapBitsPtr;
 
 struct {
 	int start, last, now, render;
@@ -187,11 +189,14 @@ void demo()
 
 void startdemo()
 {
+	BITMAPINFO bmi;
+
 	grid_init();
 
 	uniformPar.fTime = 0.0f;
 	uniformPar.umin = uniformPar.vmin = 0.0f;
 	uniformPar.umax = uniformPar.vmax = 1.0f;
+	uniformPar.renderText = 0.0f;
 
 	wcDemo.cbSize = sizeof(WNDCLASSEX);
 	wcDemo.style = 0;
@@ -266,6 +271,19 @@ void startdemo()
 	DemoMakeWin(&wins.altMain, grid.pos, grid.mainSize, "my-first-shader.glsl", MW_BACKDC);
 	SetWindowLong(wins.altMain.hWnd, GWL_WNDPROC, (LONG) (LONG_PTR) &AltMainWndProc);
 	loaderCurrent+=2;
+	bmi.bmiHeader.biSize = 40;
+	bmi.bmiHeader.biWidth = wins.altMain.clientSize.x;
+	bmi.bmiHeader.biHeight = wins.altMain.clientSize.y;
+	bmi.bmiHeader.biPlanes = 1;
+	bmi.bmiHeader.biBitCount = 32;
+	bmi.bmiHeader.biCompression = 0;
+	bmi.bmiHeader.biSizeImage = 0;
+	bmi.bmiHeader.biXPelsPerMeter = 0;
+	bmi.bmiHeader.biYPelsPerMeter = 0;
+	bmi.bmiHeader.biClrUsed = 0;
+	bmi.bmiHeader.biClrImportant = 0;
+	*(int*)&bmi.bmiColors = 0;
+	textsBitmapHandle = CreateDIBSection(wins.altMain.hBackDC, &bmi, DIB_RGB_COLORS, &textsBitMapBitsPtr, 0, 0);
 
 	DemoMakeWin(&wins.main, grid.pos, grid.mainSize, "my-first-shader.glsl", MW_GL | MW_VISIBLE);
 	loaderCurrent++;

@@ -1,6 +1,7 @@
 #version 430
-layout (location=0) uniform float par[5];
+layout (location=0) uniform float par[6];
 #define iTime par[0]
+uniform sampler2D tex;
 
 #define PI 3.14159265359
 #define HALFPI 1.5707963268
@@ -25,6 +26,9 @@ void main()
 	col = mix(vec3(130.,136.,255.)/255., vec3(252.,255.,132.)/255., step(a, HALFPI/6));
 	if (iTime > .350) {
 		col += clamp(mix(.3, -2., mod((iTime - .350), .700) / .700), 0., .3);
+	}
+	if (par[5] > .5) {
+		col = col * .7 + texture2D(tex, uv).xyz;
 	}
 	c = vec4(pow(col, vec3(.5545)), 1.); // pow for gamma correction because all the cool kids do it
 }

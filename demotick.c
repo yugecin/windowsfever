@@ -170,13 +170,15 @@ void creds()
 	int whiteness;
 	HDC hDC;
 
-	ensuremainhidden();
+	ensuremainshown();
 	ensurecellshidden();
-	ensurealtmainshown();
-	whiteness = 255 - (period.relTime % 500) * 255 / 500;
+	ensurealtmainhidden();
+	ensurebordershidden();
+	//whiteness = 255 - (period.relTime % 500) * 255 / 500;
 	hDC = wins.altMain.hBackDC;
 	dccookie = SaveDC(hDC);
-	SetDCBrushColor(hDC, RGB(whiteness, whiteness, whiteness));
+	SelectObject(hDC, textsBitmapHandle);
+	SetDCBrushColor(hDC, RGB(0, 0, 0));
 	SetDCPenColor(hDC, RGB(0, 0, 0));
 	SelectObject(hDC, GetStockObject(DC_BRUSH));
 	SelectObject(hDC, GetStockObject(DC_PEN));
@@ -184,15 +186,24 @@ void creds()
 	SelectObject(hDC, hSmallFont);
 	SetBkColor(hDC, RGB(0, 0, 0));
 	SetBkMode(hDC, TRANSPARENT);
-	SetTextColor(hDC, RGB(0, 0, 0));
 	tmpRect.top = grid.size.y / 2; // total height of text is supposed to fit in 3 * grid.y (because 3 lines)
 	tmpRect.right = wins.altMain.clientSize.x;
 	tmpRect.bottom = wins.altMain.clientSize.y;
 	tmpRect.left = 0;
+	// TODO WHY DOESN'T THIS OUTLINE WORK
+	//SetTextColor(hDC, RGB(130, 136, 255));
 	// this surely will cut off on certain screen configurations
+	//DrawTextA(hDC, "code: yugecin\r\nmusic: awildbrysen\r\nmotivation: frauke", -1, &tmpRect, DT_CENTER | DT_NOCLIP | DT_NOPREFIX);
+	SetTextColor(hDC, RGB(255, 255, 255));
+	tmpRect.top -= 4;
+	tmpRect.left -= 4;
 	DrawTextA(hDC, "code: yugecin\r\nmusic: awildbrysen\r\nmotivation: frauke", -1, &tmpRect, DT_CENTER | DT_NOCLIP | DT_NOPREFIX);
 	RestoreDC(hDC, dccookie);
-	RedrawWindow(wins.altMain.hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
+	//RedrawWindow(wins.altMain.hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glBindTexture(GL_TEXTURE_2D, 1);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, wins.altMain.clientSize.x, wins.altMain.clientSize.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, textsBitMapBitsPtr);
+	uniformPar.renderText = 1.0f;
 }
 
 void greetings_intro()
@@ -496,6 +507,7 @@ void flashrandom()
 
 void demotick()
 {
+	uniformPar.renderText = 0.0f;
 #if 0
 	if (isperiod(0, 3000)) {
 		creds();
@@ -536,7 +548,9 @@ void demotick()
 		greetings_intro();
 	} else if (isperiod(22500, 47500)) {
 		greetings();
-	} else if (isperiod(47500, 49000)) {
+	} else if (isperiod(47500, 50000)) {
+		creds();
+	} else if (isperiod(50000, 52500)) {
 		procrastination_is_a_fuck();
 	}
 }

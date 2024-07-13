@@ -145,7 +145,7 @@ void DemoRenderGl(struct win *this)
 {
 	if (this->shown) {
 		wglMakeCurrent(this->hDC, hGLRC);
-		glProgramUniform1fv(frag, 0, 5, (float*) &uniformPar);
+		glProgramUniform1fv(frag, 0, 6, (float*) &uniformPar);
 		glViewport(0, 0, this->clientSize.x, this->clientSize.y);
 		glRecti(1, 1, -1, -1);
 		SwapBuffers(this->hDC);
