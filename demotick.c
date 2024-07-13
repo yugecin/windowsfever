@@ -325,7 +325,6 @@ void greetings()
 		nextpos.y = -mcos((int) (360 * t) - 90) * grid.size.y / 5;
 		break;
 	case 1:
-	case 5:
 		from.x = metrics.rcWork.left + metrics.workingAreaWidth / 5;
 		from.y = metrics.rcFull.top - grid.size.y * 2;
 		to.x = metrics.rcWork.left + metrics.workingAreaWidth * 3 / 5;
@@ -337,7 +336,6 @@ void greetings()
 		nextpos.x = -mcos((int) (360 * t) - 90) * grid.size.y / 5;
 		break;
 	case 2:
-	case 6:
 		from.x = metrics.rcWork.left + metrics.workingAreaWidth * 4 / 5;
 		from.y = metrics.rcFull.top - grid.size.y * 2;
 		to.x = metrics.rcWork.left + metrics.workingAreaWidth * 3 / 5;
@@ -370,6 +368,28 @@ void greetings()
 		extra.y = 0;
 		extra.x = -mcos((int) (360 * t)) * grid.size.y;
 		nextpos.x = -mcos((int) (360 * t) - 90) * grid.size.y / 5;
+		break;
+	case 5:
+		from.x = metrics.rcWork.left + metrics.workingAreaWidth / 2;
+		from.y = metrics.rcFull.top - grid.size.y * 2;
+		to.x = metrics.rcWork.left + metrics.workingAreaWidth - grid.size.x;
+		to.y = metrics.rcFull.bottom + grid.size.y * (len[index] + 1);
+		nextpos.x = -grid.size.x / 2;
+		nextpos.y = -grid.size.y;
+		extra.y = 0;
+		extra.x = -mcos((int) (360 * t)) * grid.size.x;
+		nextpos.x = -mcos((int) (360 * t) - 90) * grid.size.x / 5;
+		break;
+	case 6:
+		from.x = metrics.rcWork.left + metrics.workingAreaWidth * 2 / 5;
+		from.y = metrics.rcFull.top - grid.size.y * 2;
+		to.x = metrics.rcWork.left + metrics.workingAreaWidth * 3 / 5;
+		to.y = metrics.rcFull.bottom + grid.size.y * (len[index] + 1);
+		nextpos.x = grid.size.x / 5;
+		nextpos.y = -grid.size.y;
+		extra.y = 0;
+		extra.x = mcos((int) (360 * t)) * grid.size.y;
+		nextpos.x = mcos((int) (360 * t) + 90) * grid.size.y / 5;
 		break;
 	default:
 		return;
@@ -622,7 +642,7 @@ void demotick()
 		return;
 	}
 #endif
-#if 0
+#if 1
 	if (isperiod(0, 28000)) {
 		greetings();
 		return;
