@@ -109,7 +109,7 @@ void procrastination_is_a_fuck()
 	SelectObject(hDC, GetStockObject(DC_BRUSH));
 	SelectObject(hDC, GetStockObject(DC_PEN));
 	Rectangle(hDC, 0, 0, wins.altMain.clientSize.x - 1, wins.altMain.clientSize.y - 1);
-	SelectObject(hDC, hFont);
+	SelectObject(hDC, hSmallFont);
 	SetBkColor(hDC, RGB(0, 0, 0));
 	SetBkMode(hDC, TRANSPARENT);
 	SetTextColor(hDC, RGB(0, 0, 0));
@@ -385,62 +385,79 @@ void greetings()
 	pumpmessages();
 }
 
-void demotick()
+void preexplosionshake()
+{
+	// shake before explosion
+	ensuremainshown();
+	ensurealtmainhidden();
+	ensurecellshidden();
+	if (demostate.ms % 10) {
+		tmp = (int) (100 * eq_in_quart((demostate.ms - 6350) / 1800.0f));
+		srand(demostate.ms);
+		tmpPos.x = grid.pos.x + (randn(tmp) - (tmp) / 2);
+		tmpPos.y = grid.pos.y + (randn(tmp) - (tmp) / 2);
+		DemoSetWindowState(&wins.main, NULL, tmpPos, nullpt, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
+	}
+	ensurebordershidden();
+}
+
+void explosion()
+{
+	// explosion
+	ensuremainhidden();
+	ensurealtmainhidden();
+	ensurecellsshown();
+	t = eq_out_cubic((period.relTime - 100) / (float) (period.duration - 200));
+	if (t < 0.0f) t = 0.0f;
+	else if (t > 1.0f) t = 1.0f;
+	for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
+		explosion_do(wins.cells + i, i, t);
+	}
+	ensurebordershidden();
+}
+
+void flashborder()
 {
 	HDC hDC;
 
-	if (isperiod(0, 3000)) {
-		creds();
-	} else if (isperiod(3000, 4000)) {
-		procrastination_is_a_fuck();
-	}
-	return;
-	if (isperiod(0, 3500)) {
-		greetings_intro();
-	} else if (isperiod(3500, 28000)) {
-		greetings();
-	}
-	return;
-	if (isperiod(0, 6350)) {
-		// start
-		ensuremainshown();
-		ensurealtmainhidden();
-		ensurecellshidden();
-		ensurebordershidden();
-	} else if (isperiod(6350, 8150)) {
-		// shake before explosion
-		ensuremainshown();
-		ensurealtmainhidden();
-		ensurecellshidden();
-		if (demostate.ms % 10) {
-			tmp = (int) (100 * eq_in_quart((demostate.ms - 6350) / 1800.0f));
-			srand(demostate.ms);
-			tmpPos.x = grid.pos.x + (randn(tmp) - (tmp) / 2);
-			tmpPos.y = grid.pos.y + (randn(tmp) - (tmp) / 2);
-			DemoSetWindowState(&wins.main, NULL, tmpPos, nullpt, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
+	ensuremainshown();
+	ensurealtmainhidden();
+	ensurecellshidden();
+	for (i = 0; i < GRID_BORDERCELLS; i++) {
+		if (!wins.border[i].shown) {
+			DemoSetWindowState(wins.border + i, NULL, grid.borderpos[i], grid.size, SWP_SHOWWINDOW | SWP_NOACTIVATE);
 		}
-		ensurebordershidden();
-	} else if (isperiod(8150, 11050)) {
-		// explosion
-		ensuremainhidden();
-		ensurealtmainhidden();
-		ensurecellsshown();
-		t = eq_out_cubic((period.relTime - 100) / (float) (period.duration - 200));
-		if (t < 0.0f) t = 0.0f;
-		else if (t > 1.0f) t = 1.0f;
-		for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
-			explosion_do(wins.cells + i, i, t);
-		}
-		ensurebordershidden();
-	} else if (isperiod(11050, 11750)) {
-		ensuremainshown();
-		ensurealtmainhidden();
-		ensurecellshidden();
-		for (i = 0; i < GRID_BORDERCELLS; i++) {
-			if (!wins.border[i].shown) {
-				DemoSetWindowState(wins.border + i, NULL, grid.borderpos[i], grid.size, SWP_SHOWWINDOW | SWP_NOACTIVATE);
+		tmp = 255 - (int) (255 * eq_in_quad(period.t));
+		hDC = wins.border[i].hBackDC;
+		dccookie = SaveDC(hDC);
+		SetDCBrushColor(hDC, RGB(tmp, tmp, tmp));
+		SetDCPenColor(hDC, RGB(tmp, tmp, tmp));
+		SelectObject(hDC, GetStockObject(DC_BRUSH));
+		SelectObject(hDC, GetStockObject(DC_PEN));
+		Rectangle(hDC, 0, 0, wins.border[i].clientSize.x - 1, wins.border[i].clientSize.y - 1);
+		RestoreDC(hDC, dccookie);
+		RedrawWindow(wins.border[i].hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
+	}
+}
+
+void flashrandom()
+{
+	HDC hDC;
+
+	ensuremainshown();
+	ensurealtmainhidden();
+	ensurecellshidden();
+	for (i = 0; i < GRID_BORDERCELLS; i++) {
+		srand(grid.borderpos[i].x);
+		tmp = randn(period.duration - 200);
+		t = (tmp - period.relTime) / 200.0f;
+		if (t < 0.0 || t > 1.0) {
+			if (wins.border[i].shown) {
+				DemoSetWindowState(wins.border + i, NULL, nullpt, nullpt, SWP_HIDEWINDOW | SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE);
 			}
-			tmp = 255 - (int) (255 * eq_in_quad(period.t));
+		} else {
+			t = 1.0f - t;
+			tmp = 255 - (int) (255 * t);
 			hDC = wins.border[i].hBackDC;
 			dccookie = SaveDC(hDC);
 			SetDCBrushColor(hDC, RGB(tmp, tmp, tmp));
@@ -449,100 +466,51 @@ void demotick()
 			SelectObject(hDC, GetStockObject(DC_PEN));
 			Rectangle(hDC, 0, 0, wins.border[i].clientSize.x - 1, wins.border[i].clientSize.y - 1);
 			RestoreDC(hDC, dccookie);
+			tmpPos.x = metrics.rcWork.left + randn(metrics.workingAreaWidth - grid.size.x);
+			tmpPos.y = metrics.rcWork.top + randn(metrics.workingAreaHeight - grid.size.y);
+			DemoSetWindowState(wins.border + i, NULL, tmpPos, nullpt, SWP_SHOWWINDOW | SWP_NOSIZE);
 			RedrawWindow(wins.border[i].hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
 		}
+	}
+	pumpmessages();
+}
+
+void demotick()
+{
+	HDC hDC;
+
+	//if (isperiod(0, 3000)) {
+	//	creds();
+	//}
+	if (isperiod(0, 6350)) {
+		// start
+		ensuremainshown();
+		ensurealtmainhidden();
+		ensurecellshidden();
+		ensurebordershidden();
+	} else if (isperiod(6350, 8150)) {
+		preexplosionshake();
+	} else if (isperiod(8150, 11050)) {
+		explosion();
+	} else if (isperiod(11050, 11750)) {
+		flashborder();
 	} else if (isperiod(11750, 13750)) {
 		ensuremainshown();
 		ensurealtmainhidden();
 		ensurecellshidden();
 		ensurebordershidden();
 	} else if (isperiod(13750, 14750)) {
-		ensuremainshown();
-		ensurealtmainhidden();
-		ensurecellshidden();
-		for (i = 0; i < GRID_BORDERCELLS; i++) {
-			srand(grid.borderpos[i].x);
-			tmp = randn(period.duration - 200);
-			t = (tmp - period.relTime) / 200.0f;
-			if (t < 0.0 || t > 1.0) {
-				if (wins.border[i].shown) {
-					DemoSetWindowState(wins.border + i, NULL, nullpt, nullpt, SWP_HIDEWINDOW | SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE);
-				}
-			} else {
-				t = 1.0f - t;
-				tmp = 255 - (int) (255 * t);
-				hDC = wins.border[i].hBackDC;
-				dccookie = SaveDC(hDC);
-				SetDCBrushColor(hDC, RGB(tmp, tmp, tmp));
-				SetDCPenColor(hDC, RGB(tmp, tmp, tmp));
-				SelectObject(hDC, GetStockObject(DC_BRUSH));
-				SelectObject(hDC, GetStockObject(DC_PEN));
-				Rectangle(hDC, 0, 0, wins.border[i].clientSize.x - 1, wins.border[i].clientSize.y - 1);
-				RestoreDC(hDC, dccookie);
-				tmpPos.x = metrics.rcWork.left + randn(metrics.workingAreaWidth - grid.size.x);
-				tmpPos.y = metrics.rcWork.top + randn(metrics.workingAreaHeight - grid.size.y);
-				DemoSetWindowState(wins.border + i, NULL, tmpPos, nullpt, SWP_SHOWWINDOW | SWP_NOSIZE);
-				RedrawWindow(wins.border[i].hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
-			}
-		}
-		pumpmessages();
-	} else if (isperiod(14750, 15000)) {
+		flashrandom();
+	} else if (isperiod(14750, 19000)) {
 		ensuremainshown();
 		ensurealtmainhidden();
 		ensurecellshidden();
 		ensurebordershidden();
-	} else if (isperiod(15000, 19000)) {
-		ensuremainshown();
-		ensurealtmainhidden();
-		ensurecellshidden();
-
-		tmpPos.y = grid.pos.y + (grid.size.y * GRID_CELLS_VERT) / 2 - grid.size.y * 2 + grid.size.y / 2;
-		t = period.t;
-		if (t > .33f) {	t -= .33f; tmpPos.y += grid.size.y; }
-		if (t > .33f) {	t -= .33f; tmpPos.y += grid.size.y; }
-		t /= .33f;
-		for (i = 0; i < GRID_BORDERCELLS; i++) {
-			if (i < 10 && t < 1.0f) {
-				tmpPos.x = grid.pos.x - grid.size.x + grid.size.x * i;
-				t2 = i / 10.0f * .8f;
-				t3 = i / 10.0f * .8f + .2f;
-				if (t2 <= t && t < t3) {
-					hDC = wins.border[i].hBackDC;
-					dccookie = SaveDC(hDC);
-					SetDCBrushColor(hDC, RGB(0, 0, 0));
-					SetDCPenColor(hDC, RGB(0, 0, 0));
-					SelectObject(hDC, GetStockObject(DC_BRUSH));
-					SelectObject(hDC, GetStockObject(DC_PEN));
-					Rectangle(hDC, 0, 0, wins.border[i].clientSize.x - 1, wins.border[i].clientSize.y - 1);
-					SelectObject(hDC, hFont);
-					SetBkColor(hDC, RGB(0, 0, 0));
-					SetBkMode(hDC, TRANSPARENT);
-					SetTextColor(hDC, RGB(255, 255, 255));
-					tmpRect.top = 0;
-					tmpRect.right = wins.border[i].clientSize.x;
-					tmpRect.bottom = wins.border[i].clientSize.y;
-					tmpRect.left = 0;
-					DrawTextA(hDC, developers + i, 1, &tmpRect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-					RestoreDC(hDC, dccookie);
-					DemoSetWindowState(wins.border + i, NULL, tmpPos, nullpt, SWP_SHOWWINDOW | SWP_NOSIZE | (wins.border[i].shown ? SWP_NOACTIVATE : 0));
-					RedrawWindow(wins.border[i].hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
-				} else {
-					if (wins.border[i].shown) {
-						DemoSetWindowState(wins.border + i, NULL, nullpt, nullpt, SWP_HIDEWINDOW | SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE);
-					}
-				}
-			} else {
-				if (wins.border[i].shown) {
-					DemoSetWindowState(wins.border + i, NULL, nullpt, nullpt, SWP_HIDEWINDOW | SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE);
-				}
-			}
-		}
-		pumpmessages();
-	} else if (isperiod(19000, 60000)) {
-		// end
-		ensuremainshown();
-		ensurealtmainhidden();
-		ensurecellshidden();
-		ensurebordershidden();
+	} else if (isperiod(19000, 22500)) {
+		greetings_intro();
+	} else if (isperiod(22500, 47500)) {
+		greetings();
+	} else if (isperiod(47500, 49000)) {
+		procrastination_is_a_fuck();
 	}
 }
