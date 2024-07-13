@@ -2,6 +2,7 @@ int seekValue; /*to modify current time by pressing left/right arrow keys to see
 int forceRender; /*to force a gl render instead of waiting for fps delay*/
 #define LOADERMAX (sizeof(wins)*2/sizeof(struct win))
 int loaderCurrent; /*loader window progress bar*/
+int loaderExtra;
 int expectLoaderClose; /*so we only quit if loader is closed without us asking it*/
 HANDLE hFont, hSmallFont; /*yeah*/
 HDC extraDC; /*yeahh*/
@@ -29,7 +30,7 @@ void render_loader()
 	SelectObject(hDC, GetStockObject(BLACK_BRUSH));
 	Rectangle(hDC, 10, 10, w - 10, h - 10);
 	SelectObject(hDC, GetStockObject(WHITE_BRUSH));
-	Rectangle(hDC, 15, 15, (int) ((w - 15) * ((float) loaderCurrent / LOADERMAX)), h - 15);
+	Rectangle(hDC, 15, 15, loaderExtra + (int) ((w - 15 - 200) * ((float) loaderCurrent / LOADERMAX)), h - 15);
 	RestoreDC(hDC, dccookie);
 
 	BeginPaint(wins.loader.hWnd, &ps);
@@ -288,12 +289,28 @@ void startdemo()
 	*(int*)&bmi.bmiColors = 0;
 	textsBitmapHandle = CreateDIBSection(wins.altMain.hBackDC, &bmi, DIB_RGB_COLORS, &textsBitMapBitsPtr, 0, 0);
 
+	loaderCurrent+= 2; // for the main window, but we don't draw loader after that's loaded so do it now
+
+	for (i = 0; i < 100; i++) {
+		Sleep(3);
+		tmpPos.x = grid.loaderSize.x + i;
+		tmpPos.y = grid.loaderSize.y;
+		loaderExtra += 1;
+		DemoSetWindowState(&wins.loader, NULL, nullpt, tmpPos, SWP_NOMOVE | SWP_NOACTIVATE);
+		RedrawWindow(wins.loader.hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
+		pumpmessages();
+	}
+	loaderExtra += 100;
+	RedrawWindow(wins.loader.hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
+	for (i = 0; i < 30; i++) {
+		Sleep(3);
+		pumpmessages();
+	}
+
 	DemoMakeWin(&wins.main, grid.pos, grid.mainSize, "my-first-shader.glsl", MW_GL | MW_VISIBLE);
-	loaderCurrent++;
 	RedrawWindow(wins.loader.hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
 	pumpmessages();
 	DemoRenderGl(&wins.main);
-	loaderCurrent++;
 
 	// and only destroy loader once main window is actually on screen (otherwise we might reveal the cell windows)
 	expectLoaderClose = 1;

@@ -195,7 +195,7 @@ void DemoMakeWin(struct win *this, POINT pos, POINT size, char *title, int flags
 	SetPixelFormat(this->hDC, pixelFormat, &pfd);
 	if (flags & MW_BACKDC) {
 		this->hBackDC = CreateCompatibleDC(this->hDC);
-		SelectObject(this->hBackDC, CreateCompatibleBitmap(this->hDC, this->clientSize.x, this->clientSize.y));
+		SelectObject(this->hBackDC, CreateCompatibleBitmap(this->hDC, this->clientSize.x + 200, this->clientSize.y));
 	}
 	if ((flags & MW_GL) && !hGLRC) {
 		hGLRC = wglCreateContext(this->hDC);
