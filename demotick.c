@@ -506,16 +506,62 @@ void flashrandom()
 	pumpmessages();
 }
 
+void borderpattern()
+{
+	int x, y, tmp, max, len, lowest, highest, val, pd;
+	float t, tt;
+	HDC hDC;
+
+	pd = period.duration / 4;
+	if (period.relTime > pd * 4) {
+		ensurebordershidden();
+		return;
+	}
+	len = 5;
+	max = GRID_CELLS_HORZ + 1 + GRID_CELLS_VERT + 1 + len;
+	tmp = period.relTime % pd;
+	t = tmp / (float) pd;
+	highest = (int) (t * (max + 2));
+	lowest = highest - len;
+	for (i = 0; i < GRID_BORDERCELLS; i++) {
+		if (i < GRID_CELLS_HORZ + 2) {
+			val = i;
+		} else if (i < GRID_CELLS_HORZ + 2 + GRID_CELLS_VERT * 2) {
+			tmp = i - GRID_CELLS_HORZ - 2;
+			val = 1 + tmp / 2;
+			val += (tmp % 2) * (GRID_CELLS_HORZ + 1);
+		} else {
+			val = i - (GRID_CELLS_HORZ + 2 + GRID_CELLS_VERT * 2);
+			val += GRID_CELLS_VERT + 1;
+		}
+		if (lowest <= val && val < highest) {
+			tt = (val - lowest) / (float) (highest - lowest);
+			tmp = (int) (255 * tt);
+			hDC = wins.border[i].hBackDC;
+			dccookie = SaveDC(hDC);
+			SetDCBrushColor(hDC, RGB(tmp, tmp, tmp));
+			SetDCPenColor(hDC, RGB(tmp, tmp, tmp));
+			SelectObject(hDC, GetStockObject(DC_BRUSH));
+			SelectObject(hDC, GetStockObject(DC_PEN));
+			Rectangle(hDC, 0, 0, wins.border[i].clientSize.x - 1, wins.border[i].clientSize.y - 1);
+			RestoreDC(hDC, dccookie);
+			DemoSetWindowState(wins.border + i, NULL, grid.borderpos[i], nullpt, SWP_SHOWWINDOW | SWP_NOSIZE | SWP_NOACTIVATE);
+			RedrawWindow(wins.border[i].hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
+		} else {
+			DemoSetWindowState(wins.border + i, NULL, grid.borderpos[i], nullpt, SWP_HIDEWINDOW | SWP_NOSIZE | SWP_NOACTIVATE);
+		}
+	}
+}
+
 void brokenstate()
 {
 	uniformPar.brokenState = 1.0f;
 	ensuremainshown();
 	ensurealtmainhidden();
 	ensurecellshidden();
-	ensurebordershidden();
 }
 
-void fixstate()
+void fixingstate()
 {
 	POINT from, to, pos;
 	int x, y, flags;
@@ -529,7 +575,6 @@ void fixstate()
 	t = period.t; // the positions aren't perfect so fuck the before and after state
 	ensuremainshown();
 	ensurealtmainhidden();
-	ensurebordershidden();
 	for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
 		x = i % GRID_CELLS_HORZ;
 		y = i / GRID_CELLS_HORZ;
@@ -565,7 +610,6 @@ void fixedstate()
 	ensuremainshown();
 	ensurealtmainhidden();
 	ensurecellshidden();
-	ensurebordershidden();
 }
 
 void demotick()
@@ -585,15 +629,21 @@ void demotick()
 	}
 #endif
 #if 0
+	if (isperiod(0, 7000)) {
+		borderpattern();
+	}
 	if (isperiod(0, 2000)) {
 		brokenstate();
 	} else if (isperiod(2000, 5000)) {
-		fixstate();
+		fixingstate();
 	} else if (isperiod(5000, 7000)) {
 		fixedstate();
 	}
 	return;
 #endif
+	if (isperiod(15000, 26500)) {
+		borderpattern();
+	}
 	if (isperiod(0, 10500)) {
 		// start
 		ensuremainshown();
@@ -607,7 +657,7 @@ void demotick()
 	} else if (isperiod(15000, 17000)) {
 		brokenstate();
 	} else if (isperiod(17000, 22000)) {
-		fixstate();
+		fixingstate();
 	} else if (isperiod(22000, 26500)) {
 		fixedstate();
 	} else if (isperiod(26500, 31000)) {
