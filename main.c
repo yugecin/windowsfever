@@ -1,6 +1,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 
-#define DEMONAME "windows"
+#define DEMONAME "window(s)fever"
 
 #define _INC_STDLIB // don't want it
 

@@ -642,7 +642,7 @@ void demotick()
 		return;
 	}
 #endif
-#if 1
+#if 0
 	if (isperiod(0, 28000)) {
 		greetings();
 		return;
@@ -680,14 +680,14 @@ void demotick()
 		fixingstate();
 	} else if (isperiod(22000, 26500)) {
 		fixedstate();
-	} else if (isperiod(26500, 31000)) {
+	} else if (isperiod(26500, 30000)) {
 		greetings_intro();
-	} else if (isperiod(31000, 55000)) {
+	} else if (isperiod(30000, 52000)) {
 		greetings();
-	} else if (isperiod(55000, 57500)) {
+	} else if (isperiod(52000, 54200)) {
 		creds();
-	} else if (isperiod(57500, 60000)) {
-		sound_stop();
+	} else if (isperiod(54200, 56500)) {
+		sound_mute();
 		procrastination_is_a_fuck();
 	} else {
 		ExitProcess(0);

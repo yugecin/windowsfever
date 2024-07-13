@@ -83,11 +83,10 @@ void sound_play(int startSample)
 	sound.isPlaying = 1;
 }
 
-void sound_stop()
+void sound_mute()
 {
 	if (sound.isPlaying) {
-		waveOutReset(sound.hWaveout);
-		sound.isPlaying = 0;
+		waveOutSetVolume(sound.hWaveout, 0);
 	}
 }
 
