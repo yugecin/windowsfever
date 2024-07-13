@@ -64,7 +64,7 @@ struct win {
 	POINT framePos, clientPos, frameSize, clientSize;
 	HDC hDC, hBackDC;
 	HWND hWnd;
-	int shown;
+	int shown, behind;
 };
 
 struct {
@@ -145,7 +145,7 @@ void DemoRenderGl(struct win *this)
 {
 	if (this->shown) {
 		wglMakeCurrent(this->hDC, hGLRC);
-		glProgramUniform1fv(frag, 0, 6, (float*) &uniformPar);
+		glProgramUniform1fv(frag, 0, 7, (float*) &uniformPar);
 		glViewport(0, 0, this->clientSize.x, this->clientSize.y);
 		glRecti(1, 1, -1, -1);
 		SwapBuffers(this->hDC);
@@ -173,6 +173,7 @@ void DemoMakeWin(struct win *this, POINT pos, POINT size, char *title, int flags
 	GLuint vert, pipeline;
 
 	DemoWindowSizeDesiredToReal(&size);
+	this->behind = 1;
 	this->shown = flags & MW_VISIBLE;
 	this->hWnd = CreateWindowEx(
 		WS_EX_APPWINDOW, wcDemo.lpszClassName, title,

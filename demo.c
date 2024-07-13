@@ -123,7 +123,9 @@ void render_shader_in_cells()
 			x += cellClientSize.x;
 			uniformPar.umax = x / w;
 			x += metrics.rcBorders.right + metrics.rcBorders.left;
-			DemoRenderGl(wins.cells + j * GRID_CELLS_HORZ + i);
+			if (!wins.cells[j * GRID_CELLS_HORZ + i].behind) {
+				DemoRenderGl(wins.cells + j * GRID_CELLS_HORZ + i);
+			}
 		}
 	}
 }
@@ -181,6 +183,7 @@ void demo()
 			DemoRenderGl(&wins.main);
 
 			if (demostate.doRenderCellsGL) {
+				uniformPar.brokenState = 0.0f;
 				render_shader_in_cells();
 			}
 		}

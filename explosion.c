@@ -31,9 +31,9 @@ void explosion_init()
 #error "well this won't work"
 #endif
 #define CELLID(X,Y) (GRID_CELLS_HORZ * Y + X)
-	explosiontracker[CELLID(2,1)].to.cellId = CELLID(4,2);
-	explosiontracker[CELLID(4,2)].to.cellId = CELLID(0,0);
-	explosiontracker[CELLID(0,0)].to.cellId = CELLID(2,1);
+	explosiontracker[CELLID(2,2)].to.cellId = CELLID(4,1);
+	explosiontracker[CELLID(4,1)].to.cellId = CELLID(0,0);
+	explosiontracker[CELLID(0,0)].to.cellId = CELLID(2,2);
 
 	explBounds.top = metrics.rcWork.top;
 	explBounds.right = metrics.rcWork.right - grid.size.x;

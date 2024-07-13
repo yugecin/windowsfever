@@ -1,6 +1,7 @@
 #version 430
-layout (location=0) uniform float par[6];
+layout (location=0) uniform float par[7];
 #define iTime par[0]
+#define brokenState par[6]
 uniform sampler2D tex;
 
 #define PI 3.14159265359
@@ -115,20 +116,54 @@ vec3 colorHit(vec3 result, vec3 rd)
 	return col;
 }
 
+vec2 douvthings(vec2 uv)
+{
+	vec2 uvmin = vec2(par[1], par[3]);
+	vec2 uvmax = vec2(par[2], par[4]);
+	if (brokenState > .5) {
+		uv.y = 1.0 - uv.y;
+		if (4./8. <= uv.x && uv.x < 5./8. && 1./4. <= uv.y && uv.y < 2./4.) {
+			if (brokenState > 1.0) {
+				uv.x = -1.0;
+				return uv;
+			}
+			uvmin = vec2(2./8., 1./4.);
+			uvmax = vec2(3./8., 2./4.);
+		} else if (uv.x < 1./8. && uv.y < 1./4.) {
+			if (brokenState > 1.0) {
+				uv.x = -1.0;
+				return uv;
+			}
+			uvmin = vec2(4./8., 1./4.);
+			uvmax = vec2(5./8., 2./4.);
+		} else if (2./8. <= uv.x && uv.x < 3./8. && 2./4. <= uv.y && uv.y < 3./4.) {
+			if (brokenState > 1.0) {
+				uv.x = -1.0;
+				return uv;
+			}
+			uvmin = vec2(0., 0.);
+			uvmax = vec2(1./8., 1./4.);
+		}
+		uv.y = 1.0 - uv.y;
+	}
+	return mix(uvmin, uvmax, uv);
+}
+
 out vec4 c;
 in vec2 v;
 void main()
 {
-	vec2 uv = mix(vec2(par[1], par[3]), vec2(par[2], par[4]), v/2+.5);
+	vec2 uv = douvthings(v/2.+.5);
+	if (uv.x < 0.0) {
+		c = vec4(0., 0., 0., 1.);
+		return;
+	}
 	vec3 col = 0.5 + 0.5*cos(iTime+uv.xyx+vec3(0,2,4));
 	vec2 _uv = ((uv-.5) * rot2(iTime/3.)) + .5;
 	float a = mod(atan2(_uv.y - .5, _uv.x - .5), HALFPI/3);
 	col = mix(vec3(130.,136.,255.)/255., vec3(252.,255.,132.)/255., step(a, HALFPI/6));
 	if (iTime > .350) {
 		col += clamp(mix(.3, -2., mod((iTime - .350), .700) / .700), 0., .3);
-	}
-	if (par[5] > .5) {
-		col = col * .7 + texture2D(tex, uv).xyz;
 	}
 
 
@@ -141,6 +176,9 @@ void main()
 	vec3 result = march(ro, rd, 200);
 	if (result.x > 0.) { // hit
 		col = colorHit(result, rd);
+	}
+	if (par[5] > .5) {
+		col = col * .7 + texture2D(tex, uv).xyz;
 	}
 
 	c = vec4(pow(col, vec3(.5545)), 1.); // pow for gamma correction because all the cool kids do it

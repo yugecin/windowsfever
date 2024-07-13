@@ -43,6 +43,7 @@ void ensurecellsshown()
 			DemoSetWindowState(wins.cells + i, NULL, grid.cellpos[i], nullpt, SWP_NOSIZE | SWP_NOACTIVATE);
 			demostate.doRenderCellsGL = 1;
 		}
+		wins.cells[i].behind = 0;
 	}
 }
 
@@ -50,6 +51,7 @@ void ensurecellshidden()
 {
 	for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
 		DemoSetWindowState(wins.cells + i, NULL, grid.cellLoadingPos, nullpt, SWP_NOSIZE | SWP_NOACTIVATE);
+		wins.cells[i].behind = 1;
 	}
 }
 
@@ -167,7 +169,6 @@ void procrastination_is_a_fuck()
 
 void creds()
 {
-	int whiteness;
 	HDC hDC;
 
 	ensuremainshown();
@@ -422,7 +423,7 @@ void preexplosionshake()
 	ensurealtmainhidden();
 	ensurecellshidden();
 	if (demostate.ms % 10) {
-		tmp = (int) (100 * eq_in_quart((demostate.ms - 6350) / 1800.0f));
+		tmp = (int) (100 * eq_in_quart(period.relTime / (float) period.duration));
 		srand(demostate.ms);
 		tmpPos.x = grid.pos.x + (randn(tmp) - (tmp) / 2);
 		tmpPos.y = grid.pos.y + (randn(tmp) - (tmp) / 2);
@@ -437,7 +438,7 @@ void explosion()
 	ensuremainhidden();
 	ensurealtmainhidden();
 	ensurecellsshown();
-	t = eq_out_cubic((period.relTime - 100) / (float) (period.duration - 200));
+	t = eq_out_quart((period.relTime - 100) / (float) (period.duration - 200));
 	if (t < 0.0f) t = 0.0f;
 	else if (t > 1.0f) t = 1.0f;
 	for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
@@ -505,9 +506,72 @@ void flashrandom()
 	pumpmessages();
 }
 
+void brokenstate()
+{
+	uniformPar.brokenState = 1.0f;
+	ensuremainshown();
+	ensurealtmainhidden();
+	ensurecellshidden();
+	ensurebordershidden();
+}
+
+void fixstate()
+{
+	POINT from, to, pos;
+	int x, y, flags;
+	float t;
+
+	demostate.doRenderCellsGL = 1;
+	uniformPar.brokenState = 2.0f;
+	t = period.t * 1.2f - .1f;
+	if (t < 0.0f) t = 0.0f;
+	else if (t > 1.0f) t = 1.0f;
+	t = period.t; // the positions aren't perfect so fuck the before and after state
+	ensuremainshown();
+	ensurealtmainhidden();
+	ensurebordershidden();
+	for (i = 0; i < GRID_CELLS_HORZ * GRID_CELLS_VERT; i++) {
+		x = i % GRID_CELLS_HORZ;
+		y = i / GRID_CELLS_HORZ;
+		flags = 0;
+		to = grid.cellpos[i];
+		if (x == 2 && y == 2) {
+			from = grid.cellpos[4 + GRID_CELLS_HORZ * 1];
+		} else if (x == 4 && y == 1) {
+			from = grid.cellpos[0 + GRID_CELLS_HORZ * 0];
+		} else if (!x && !y) {
+			from = grid.cellpos[2 + GRID_CELLS_HORZ * 2];
+		} else {
+			DemoSetWindowState(wins.cells + i, NULL, grid.cellLoadingPos, nullpt, SWP_NOSIZE | SWP_NOACTIVATE);
+			wins.cells[i].behind = 1;
+			continue;
+		}
+		if (!wins.cells[i].behind) {
+			flags |= SWP_NOACTIVATE;
+		} else {
+			wins.cells[i].behind = 0;
+		}
+		pos.x = from.x + (int) (t * (to.x - from.x));
+		pos.y = from.y + (int) (t * (to.y - from.y));
+		DemoSetWindowState(wins.cells + i, NULL, pos, nullpt, SWP_NOSIZE | flags);
+	}
+}
+
+void fixedstate()
+{
+	if (GetForegroundWindow() != wins.main.hWnd) {
+		DemoSetWindowState(&wins.main, NULL, grid.pos, wins.main.frameSize, SWP_NOZORDER | SWP_SHOWWINDOW);
+	}
+	ensuremainshown();
+	ensurealtmainhidden();
+	ensurecellshidden();
+	ensurebordershidden();
+}
+
 void demotick()
 {
 	uniformPar.renderText = 0.0f;
+	uniformPar.brokenState = 0.0f;
 #if 0
 	if (isperiod(0, 3000)) {
 		creds();
@@ -520,37 +584,42 @@ void demotick()
 		return;
 	}
 #endif
-	if (isperiod(0, 6350)) {
+#if 0
+	if (isperiod(0, 2000)) {
+		brokenstate();
+	} else if (isperiod(2000, 5000)) {
+		fixstate();
+	} else if (isperiod(5000, 7000)) {
+		fixedstate();
+	}
+	return;
+#endif
+	if (isperiod(0, 10500)) {
 		// start
 		ensuremainshown();
 		ensurealtmainhidden();
 		ensurecellshidden();
 		ensurebordershidden();
-	} else if (isperiod(6350, 8150)) {
+	} else if (isperiod(10500, 12300)) {
 		preexplosionshake();
-	} else if (isperiod(8150, 11050)) {
+	} else if (isperiod(12300, 15000)) {
 		explosion();
-	} else if (isperiod(11050, 11750)) {
-		flashborder();
-	} else if (isperiod(11750, 13750)) {
-		ensuremainshown();
-		ensurealtmainhidden();
-		ensurecellshidden();
-		ensurebordershidden();
-	} else if (isperiod(13750, 14750)) {
-		flashrandom();
-	} else if (isperiod(14750, 19000)) {
-		ensuremainshown();
-		ensurealtmainhidden();
-		ensurecellshidden();
-		ensurebordershidden();
-	} else if (isperiod(19000, 22500)) {
+	} else if (isperiod(15000, 17000)) {
+		brokenstate();
+	} else if (isperiod(17000, 22000)) {
+		fixstate();
+	} else if (isperiod(22000, 26500)) {
+		fixedstate();
+	} else if (isperiod(26500, 31000)) {
 		greetings_intro();
-	} else if (isperiod(22500, 47500)) {
+	} else if (isperiod(31000, 55000)) {
 		greetings();
-	} else if (isperiod(47500, 50000)) {
+	} else if (isperiod(55000, 57500)) {
 		creds();
-	} else if (isperiod(50000, 52500)) {
+	} else if (isperiod(57500, 60000)) {
+		sound_stop();
 		procrastination_is_a_fuck();
+	} else {
+		ExitProcess(0);
 	}
 }

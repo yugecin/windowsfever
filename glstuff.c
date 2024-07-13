@@ -31,6 +31,6 @@ const char *vertSource =
 #pragma pack(push,1)
 struct {
 	float fTime;
-	float umin, umax, vmin, vmax, renderText;
+	float umin, umax, vmin, vmax, renderText, brokenState;
 } uniformPar;
 #pragma pack(pop)
