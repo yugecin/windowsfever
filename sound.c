@@ -11,7 +11,7 @@ struct {
     int isPlaying;
 } sound;
 
-#define MAXRAWSIZE 5000000
+#define MAXRAWSIZE 10000000
 #define SAMPLES_PER_SEC 44100
 #define BYTES_PER_SAMPLE 2
 #define CHANNELS 1
@@ -31,7 +31,7 @@ void sound_init()
 	sound.isPlaying = 0;
 
 	sound.raw = HeapAlloc(GetProcessHeap(), 0, MAXRAWSIZE); 
-	hFile = CreateFile("plucks2.raw", GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	hFile = CreateFile("shrug2point0.raw", GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (hFile == INVALID_HANDLE_VALUE) {
 		MessageBoxA(NULL, "CreateFile err", DEMONAME, MB_OK);
 		ExitProcess(0);
@@ -75,12 +75,20 @@ void sound_play(int startSample)
 		ExitProcess(0);
 	}
 	// because parties are loud?
-	waveOutSetVolume(sound.hWaveout, 0xCCCCCCCC);
+	waveOutSetVolume(sound.hWaveout, 0xC0C0C0C0);
 	if (waveOutWrite(sound.hWaveout, &sound.wavHdr, sizeof(sound.wavHdr))) {
 		MessageBoxA(NULL, "waveOutWrite err", DEMONAME, MB_OK);
 		ExitProcess(0);
 	}
 	sound.isPlaying = 1;
+}
+
+void sound_stop()
+{
+	if (sound.isPlaying) {
+		waveOutReset(sound.hWaveout);
+		sound.isPlaying = 0;
+	}
 }
 
 void sound_seek_relative_seconds(int seek_seconds)
