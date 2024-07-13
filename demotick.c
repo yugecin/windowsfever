@@ -287,6 +287,7 @@ void greetings()
 	POINT from, to;
 	int index;
 	POINT nextpos;
+	POINT extra;
 
 	t = period.t;
 	for (index = 0; index < numgr; index++) {
@@ -306,6 +307,10 @@ void greetings()
 		to.y = metrics.rcWork.bottom - grid.size.y * 2;
 		nextpos.x = grid.size.x;
 		nextpos.y = -grid.size.y / 10;
+		to.y = from.y;
+		extra.x = 0;
+		extra.y = -mcos((int) (360 * t)) * grid.size.y;
+		nextpos.y = -mcos((int) (360 * t) - 90) * grid.size.y / 5;
 		break;
 	case 1:
 	case 5:
@@ -315,6 +320,9 @@ void greetings()
 		to.y = metrics.rcFull.bottom + grid.size.y * (len[index] + 1);
 		nextpos.x = -grid.size.x / 2;
 		nextpos.y = -grid.size.y;
+		extra.y = 0;
+		extra.x = -mcos((int) (360 * t)) * grid.size.y;
+		nextpos.x = -mcos((int) (360 * t) - 90) * grid.size.y / 5;
 		break;
 	case 2:
 	case 6:
@@ -324,6 +332,9 @@ void greetings()
 		to.y = metrics.rcFull.bottom + grid.size.y * (len[index] + 1);
 		nextpos.x = grid.size.x / 5;
 		nextpos.y = -grid.size.y;
+		extra.y = 0;
+		extra.x = mcos((int) (360 * t)) * grid.size.y;
+		nextpos.x = mcos((int) (360 * t) - 90) * grid.size.y / 5;
 		break;
 	case 3:
 		from.x = metrics.rcFull.right + grid.size.x;
@@ -332,6 +343,9 @@ void greetings()
 		to.y = metrics.rcWork.top + metrics.workingAreaHeight * 3 / 5;
 		nextpos.x = grid.size.x;
 		nextpos.y = grid.size.y / 6;
+		extra.y = 0;
+		extra.x = -mcos((int) (360 * t)) * grid.size.y;
+		nextpos.y = -mcos((int) (360 * t) - 90) * grid.size.y / 5;
 		break;
 	case 4:
 	case 8:
@@ -341,6 +355,9 @@ void greetings()
 		to.y = metrics.rcFull.top - grid.size.y * (len[index] + 1);
 		nextpos.x = grid.size.x / 6;
 		nextpos.y = grid.size.y;
+		extra.y = 0;
+		extra.x = -mcos((int) (360 * t)) * grid.size.y;
+		nextpos.x = -mcos((int) (360 * t) - 90) * grid.size.y / 5;
 		break;
 	default:
 		return;
@@ -374,6 +391,8 @@ void greetings()
 			tmpPos.y = from.y + (int) ((to.y - from.y) * t) + nextpos.y * i;
 			tmpPos.x += (int) (mcos(i * 33 + (period.relTime - period.relTime % 30) / 2) * 13);
 			tmpPos.y += (int) (mcos(i * 13 + (period.relTime - period.relTime % 30) / 2) * 13);
+			tmpPos.x += extra.x;
+			tmpPos.y += extra.y;
 			DemoSetWindowState(wins.border + i, NULL, tmpPos, nullpt, SWP_SHOWWINDOW | SWP_NOSIZE | (wins.border[i].shown ? SWP_NOACTIVATE : 0));
 			RedrawWindow(wins.border[i].hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
 		} else {
@@ -480,8 +499,14 @@ void demotick()
 #if 0
 	if (isperiod(0, 3000)) {
 		creds();
+		return;
 	}
-	return;
+#endif
+#if 0
+	if (isperiod(0, 28000)) {
+		greetings();
+		return;
+	}
 #endif
 	if (isperiod(0, 6350)) {
 		// start

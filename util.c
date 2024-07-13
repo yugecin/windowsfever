@@ -241,9 +241,9 @@ float mcos(int deg)
 {
 	int minus = 1;
 	// yeah
-	while (deg > 360) deg -= 360;
+	while (deg >= 360) deg -= 360;
 	while (deg < 0) deg += 360;
 	if (deg > 180) deg = 360 - deg;
 	if (deg > 90) { deg = 180 - deg; minus = -1; }
-	return costable[deg] * minus; // could lerp, but too tired
+	return costable[deg * 2] * minus; // could lerp, but too tired
 }
