@@ -190,7 +190,7 @@ void creds()
 	tmpRect.bottom = wins.altMain.clientSize.y;
 	tmpRect.left = 0;
 	// this surely will cut off on certain screen configurations
-	DrawTextA(hDC, "code: yugecin\r\nmusic: awildbrysen\r\nmotivation: frauke", -1, &tmpRect, DT_CENTER | DT_NOCLIP);
+	DrawTextA(hDC, "code: yugecin\r\nmusic: awildbrysen\r\nmotivation: frauke", -1, &tmpRect, DT_CENTER | DT_NOCLIP | DT_NOPREFIX);
 	RestoreDC(hDC, dccookie);
 	RedrawWindow(wins.altMain.hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
 }
@@ -477,11 +477,12 @@ void flashrandom()
 
 void demotick()
 {
-	HDC hDC;
-
-	//if (isperiod(0, 3000)) {
-	//	creds();
-	//}
+#if 0
+	if (isperiod(0, 3000)) {
+		creds();
+	}
+	return;
+#endif
 	if (isperiod(0, 6350)) {
 		// start
 		ensuremainshown();

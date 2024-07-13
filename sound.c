@@ -31,7 +31,7 @@ void sound_init()
 	sound.isPlaying = 0;
 
 	sound.raw = HeapAlloc(GetProcessHeap(), 0, MAXRAWSIZE); 
-	hFile = CreateFile("eh2.raw", GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	hFile = CreateFile("plucks2.raw", GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (hFile == INVALID_HANDLE_VALUE) {
 		MessageBoxA(NULL, "CreateFile err", DEMONAME, MB_OK);
 		ExitProcess(0);
