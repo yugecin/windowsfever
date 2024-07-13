@@ -686,7 +686,7 @@ void demotick()
 		greetings();
 	} else if (isperiod(52000, 54200)) {
 		creds();
-	} else if (isperiod(54200, 56500)) {
+	} else if (isperiod(54200, 55500)) {
 		sound_mute();
 		procrastination_is_a_fuck();
 	} else {

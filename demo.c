@@ -2,7 +2,6 @@ int seekValue; /*to modify current time by pressing left/right arrow keys to see
 int forceRender; /*to force a gl render instead of waiting for fps delay*/
 #define LOADERMAX (sizeof(wins)*2/sizeof(struct win))
 int loaderCurrent; /*loader window progress bar*/
-int loaderExtra;
 int expectLoaderClose; /*so we only quit if loader is closed without us asking it*/
 HANDLE hFont, hSmallFont; /*yeah*/
 HDC extraDC; /*yeahh*/
@@ -30,7 +29,7 @@ void render_loader()
 	SelectObject(hDC, GetStockObject(BLACK_BRUSH));
 	Rectangle(hDC, 10, 10, w - 10, h - 10);
 	SelectObject(hDC, GetStockObject(WHITE_BRUSH));
-	Rectangle(hDC, 15, 15, loaderExtra + (int) ((grid.loaderSize.x - 15) * ((float) loaderCurrent / LOADERMAX)), h - 15);
+	Rectangle(hDC, 15, 15, (int) ((w - 15) * ((float) loaderCurrent / LOADERMAX)), h - 15);
 	RestoreDC(hDC, dccookie);
 
 	BeginPaint(wins.loader.hWnd, &ps);
@@ -291,22 +290,21 @@ void startdemo()
 
 	loaderCurrent+= 2; // for the main window, but we don't draw loader after that's loaded so do it now
 
-	for (i = 0; i < 200; i++) {
+	for (i = 0; i < 100; i++) {
 		Sleep(8);
-		tmpPos.x = grid.loaderSize.x + i;
+		tmpPos.x = grid.loaderSize.x + i * 2;
 		tmpPos.y = grid.loaderSize.y;
-		if (loaderCurrent < LOADERMAX && i % 10) {
-			loaderCurrent++;
-		}
 		DemoSetWindowState(&wins.loader, NULL, nullpt, tmpPos, SWP_NOMOVE | SWP_NOACTIVATE);
 		RedrawWindow(wins.loader.hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
 		pumpmessages();
 	}
-	loaderCurrent = LOADERMAX;
-	loaderExtra += 200;
 	RedrawWindow(wins.loader.hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
 	for (i = 0; i < 30; i++) {
 		Sleep(3);
+		if (loaderCurrent < LOADERMAX) {
+			loaderCurrent++;
+		}
+		RedrawWindow(wins.loader.hWnd, NULL, NULL, RDW_INTERNALPAINT | RDW_INVALIDATE);
 		pumpmessages();
 	}
 

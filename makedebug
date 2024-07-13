@@ -1,2 +1,2 @@
 gcc -Wall -s -Os -x c -c main.c -o main.o -DRELEASE -DTICKCOUNT_BY_AUDIOPOSITION &&
-"Crinkler\crinkler.exe" main.o /OUT:bv2024.exe "/LIBPATH:C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Lib" kernel32.lib user32.lib opengl32.lib gdi32.lib winmm.lib dwmapi.lib /SUBSYSTEM:WINDOWS /REPORT:report.html
+"Crinkler\crinkler.exe" main.o /OUT:windowsfever.exe "/LIBPATH:C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Lib" kernel32.lib user32.lib opengl32.lib gdi32.lib winmm.lib dwmapi.lib /SUBSYSTEM:WINDOWS /REPORT:report.html
