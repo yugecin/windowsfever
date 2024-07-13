@@ -528,7 +528,7 @@ void flashrandom()
 
 void borderpattern()
 {
-	int x, y, tmp, max, len, lowest, highest, val, pd;
+	int tmp, max, len, lowest, highest, val, pd;
 	float t, tt;
 	HDC hDC;
 
